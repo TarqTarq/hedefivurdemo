@@ -22,6 +22,7 @@ Geliştirme adresleri: `?level=2-5` doğrudan bölüm açar, `?dev` bütün tuş
 - `www/locales/`: Türkçe ve İngilizce metinler
 - `tools/verify.js`: denetim; her değişiklikten sonra `npm run verify` geçmeli
 - `CLAUDE.md`: oyunun kuralları ve verilen kararlar (ayrıntılı)
+- `TODO.md`: yapılacaklar, fikirler ve bekleyen kararlar
 
 ## Birlikte çalışma
 
