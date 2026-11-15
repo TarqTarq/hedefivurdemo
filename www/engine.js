@@ -24,9 +24,9 @@
   // Ekrandaki güzel simgeleri ve yaygın yazım biçimlerini düz ASCII'ye çevirir.
   function normalize(src) {
     return String(src)
-      .replace(/\s+/g, '')
+      .replace(/\s+/g, ' ')
       .replace(/[×·∗]/g, '*').replace(/÷/g, '/').replace(/[−–]/g, '-')
-      .replace(/π/g, 'pi').replace(/²/g, '^2').replace(/³/g, '^3').replace(/√/g, 'sqrt')
+      .replace(/π/g, 'pi').replace(/²/g, '^2').replace(/³/g, '^3')
       .replace(/,/g, '.')
       .toLowerCase();
   }
@@ -37,6 +37,8 @@
     let i = 0;
     while (i < s.length) {
       const c = s[i];
+      if (c === ' ') { i++; continue; }  // boşluk yalnız ayırır: "2 3" = 2·3, 23 değil
+      if (c === '√') { out.push({ t: 'fn', v: 'sqrt', root: true, i }); i++; continue; } // √x ve √(x) ikisi de olur
       if (/[0-9.]/.test(c)) {
         let j = i;
         while (j < s.length && /[0-9.]/.test(s[j])) j++;
@@ -119,6 +121,8 @@
         case 'x': return { k: 'x' };
         case 'const': return { k: 'const', v: tok.v };
         case 'fn': {
+          // √x: parantez yoksa hemen ardındaki terimin kökü (√x², √2 gibi); sin, abs… için parantez şart
+          if (tok.root && !(peek() && peek().t === '(')) return { k: 'fn', f: 'sqrt', a: power() };
           if (!eat('(')) throw new ParseError('fnparen', tok.i);
           const a = expr(); closeParen();
           return { k: 'fn', f: tok.v, a };
@@ -211,6 +215,7 @@
   const SHAPE_BAND = 0.3; // ters bulmacada çizilen şeridin yarı genişliği (yalnız görsel)
   const DU = 0.02;        // ana adım
   const MAX_SEG = 0.08;   // bundan uzun parça ikiye bölünür
+  const MAX_POINTS = 20000; // yol bundan çok noktaya bölünürse "çok dalgalı" (telefonu dondurmasın; normal yollar < 3000)
   const MAX_DEPTH = 12;   // bölmeye rağmen hâlâ uzunsa eğri "kopmuş" (sıçrama/sonsuz) sayılır
 
   function boardOf(level) { return Object.assign({}, DEFAULT_BOARD, level.board || {}); }
@@ -228,7 +233,9 @@
   //  - Duvar ve kayalar geometriktir: karakterin (yarıçap R) değmesi yeter.
   //  - Ters bulmaca (level.shape = { fn, from, to }): x ∈ [from, to] boyunca y = g(x) olmalı (TOL içinde),
   //    yoksa 'off'; x = to'ya varınca 'win'. Hedef ve elmas yoktur.
-  // Sonuç: { result: 'win'|'wall'|'broken'|'out'|'miss'|'off', path: [[x,y],…], gems: [{index, at}], allGems, hit }
+  //  - Adımlar sabit değil, düzensiz (altın oran sırası): sabit adımla sin(50πx) gibi dalgalar tam kontrol
+  //    noktalarında 0 olup aradan "kaçıyordu" (ters bulmacada 2x−3+sin(50πx) kazanıyordu).
+  // Sonuç: { result: 'win'|'wall'|'broken'|'out'|'miss'|'off'|'wiggle', path: [[x,y],…], gems: [{index, at}], allGems, hit }
   // gems[].at: elmasın toplandığı path indeksi (animasyon bu anda toplar).
   function simulate(level, fn) {
     const B = boardOf(level);
@@ -248,6 +255,7 @@
 
     function step(x, y) {
       path.push([x, y]);
+      if (path.length > MAX_POINTS) { done = 'wiggle'; return; }
       if (y > B.ymax + R || y < B.ymin - R) { done = 'out'; return; }
       for (let k = 0; k < walls.length; k++) if (distRect(x, y, walls[k]) <= R) { done = 'wall'; hit = k; return; }
       for (let k = 0; k < rocks.length; k++) {
@@ -273,7 +281,16 @@
       if (!Number.isFinite(yb)) { done = 'broken'; return; }
       const xb = x0 + ub;
       if (Math.hypot(xb - xa, yb - ya) > MAX_SEG) {
-        if (depth >= MAX_DEPTH) { done = 'broken'; return; }
+        if (depth >= MAX_DEPTH) {
+          // Çok dik ama kesintisiz (100000x, x^1000): tahtanın dışına çıkıyorsa "çıktın", içinde sıçrıyorsa "koptu"
+          if (yb > B.ymax + R || yb < B.ymin - R) { step(xb, yb); return; }
+          // Dik mi, sıçrama mı? Kesintisiz dik eğride orta nokta iki ucun arasına düşer;
+          // sıçramada (abs(x−3)/(x−3) gibi) uçlardan birinin değerini alır.
+          const ym = Y((ua + ub) / 2);
+          if (Number.isFinite(ym) && Math.abs(ym - (ya + yb) / 2) <= 0.25 * Math.abs(yb - ya)) step(xb, yb);
+          else done = 'broken';
+          return;
+        }
         const um = (ua + ub) / 2, ym = Y(um);
         walk(xa, ya, ua, um, ym, depth + 1);
         if (done) return;
@@ -287,9 +304,10 @@
     if (!Number.isFinite(ys)) { path.push([x0, y0]); done = 'broken'; }
     else step(x0, ys);
     const uMax = B.xmax - x0;
-    let u = 0, py = ys;
+    let u = 0, py = ys, k = 0;
     while (!done && u < uMax) {
-      const u1 = Math.min(u + DU, uMax);
+      const jitter = 0.7 + 0.6 * ((++k * 0.6180339887498949) % 1);  // 0.7–1.3 × DU, tekrarsız
+      const u1 = Math.min(u + DU * jitter, uMax);
       const y1 = Y(u1);
       walk(x0 + u, py, u, u1, y1, 0);
       u = u1; py = y1;

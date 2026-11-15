@@ -43,6 +43,54 @@ for (const [src, res] of sims) {
 }
 // Matematiksel denetim: dik bir doğru hedefin yanından sıyırınca sayılmamalı
 { n++; const L = { target: { x: 3, y: -4 } }; if (E.play(L, '-3x^2+6x-1').sim.result === 'win') bad('dik eğri hedefi sıyırınca kazanıyor'); }
+// Uç durumlar (2026-11-15 hesap taraması): sıfıra bölme, tanımsız, sonsuz, aşırı dik, aşırı dalgalı
+const edge = [
+  ['1/0', 'broken'], ['0/0', 'broken'], ['x/0', 'broken'], ['1/x', 'broken'], ['x/x', 'broken'], ['abs(x)/x', 'broken'],
+  ['ln(0)', 'broken'], ['sqrt(-1)', 'broken'], ['sqrt(x-2)', 'broken'], ['(-1)^x', 'broken'], ['9^9^9', 'broken'], ['-1/x^2', 'broken'],
+  ['tan(πx/2)', 'out'], ['100000x', 'out'], ['1000000x', 'out'], ['x^1000', 'out'], ['e^(x^2)', 'out'], ['(x-0.5)^-1', 'out'],
+  ['sin(100x)', 'wiggle'], ['sin(1000x)', 'wiggle'], ['20sin(500x)', 'wiggle'], ['abs(x-3)/(x-3)+1', 'broken'],
+];
+for (const [src, res] of edge) {
+  n++;
+  const t0 = Date.now(), r = E.play(flat, src), ms = Date.now() - t0;
+  if (r.sim.result !== res) bad(`"${src}" ${r.sim.result} ≠ ${res}`);
+  if (ms > 300) bad(`"${src}" çok yavaş (${ms} ms)`);
+}
+// Örnekleme hilesi: sabit adım aralığına oturan dalgalar ters bulmacayı geçmemeli
+{ const R1 = LEVELS.find(l => l.id === '7-1');
+  for (const w of ['2x-3+sin(50πx)', '2x-3+sin(100πx)', '2x-3+sin(πx/0.02)', '2x-3+sin(πx/0.01)']) {
+    n++; if (E.play(R1, w).sim.result === 'win') bad(`7-1 "${w}" ile kazanılıyor (örnekleme hilesi)`);
+  } }
+// Ayrıştırıcı uçları
+for (const [src, x, want] of [['2 3', 0, 6], ['√x', 4, 2], ['√(x)', 9, 3], ['--x', 2, 2], ['(((x', 3, 3], ['2x²', 2, 8], ['-2^2', 0, -4], ['x−−3', 1, 4]]) {
+  n++; const p = E.parse(src);
+  if (!p.ok || !near(p.fn(x), want)) bad(`"${src}" x=${x}: ${p.ok ? p.fn(x) : p.error} ≠ ${want}`);
+}
+// Bulanık test: rastgele 5000 ifade; ayrıştırıcı hiç çökmemeli, simülasyon hızlı ve geçerli sonuçla bitmeli
+{
+  let seed = 12345; const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  const parts = ['x', '2', '0', '0.5', '9', '+', '-', '*', '/', '^', '(', ')', 'sin(', 'cos(', 'tan(', 'abs(', 'sqrt(', 'ln(', 'exp(', 'π', 'e', '.', '^2', '1000'];
+  const valid = new Set(['win', 'wall', 'broken', 'out', 'miss', 'off', 'wiggle']);
+  let worst = 0, parsedOk = 0;
+  for (let i = 0; i < 5000; i++) {
+    const len = 1 + Math.floor(rnd() * 12);
+    let src = ''; for (let j = 0; j < len; j++) src += parts[Math.floor(rnd() * parts.length)];
+    let p;
+    try { p = E.parse(src); } catch (e) { bad(`bulanık: "${src}" ayrıştırıcıyı çökertti: ${e.message}`); continue; }
+    if (!p.ok) continue;
+    parsedOk++;
+    const L = i % 2 ? flat : LEVELS[i % LEVELS.length];
+    const t0 = Date.now();
+    let r; try { r = E.simulate(L, p.fn); } catch (e) { bad(`bulanık: "${src}" simülasyonu çökertti: ${e.message}`); continue; }
+    const ms = Date.now() - t0; worst = Math.max(worst, ms);
+    if (!valid.has(r.result)) bad(`bulanık: "${src}" geçersiz sonuç ${r.result}`);
+    if (!r.path.length || r.path.length > 20001) bad(`bulanık: "${src}" yol uzunluğu ${r.path.length}`);
+    if (ms > 300) bad(`bulanık: "${src}" ${ms} ms sürdü`);
+  }
+  n++;
+  console.log(`  bulanık test: 5000 ifade, ${parsedOk} geçerli, en yavaş ${worst} ms`);
+}
+
 // Kesinlik: 1-1'de 0.1 / 0.01 / 0.001 yıldız almamalı (sahip bildirdi)
 { const L1 = LEVELS.find(l => l.id === '1-1');
   for (const w of ['0.1', '0.01', '0.001', '-0.05']) { n++; if (E.play(L1, w).stars > 0) bad(`1-1 "${w}" ile kazanılıyor`); } }

@@ -200,5 +200,6 @@ window.LOCALES.tr = {
     'lesson.start': 'Başla',
     'lesson.close': 'Tamam',
     'lesson.help': 'Bu bölümün dersi',
+    'res.wiggle': 'Yol çok dalgalı',
   },
 };

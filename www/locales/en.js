@@ -200,5 +200,6 @@ window.LOCALES.en = {
     'lesson.start': 'Start',
     'lesson.close': 'Got it',
     'lesson.help': 'Lesson for this level',
+    'res.wiggle': 'The path is too wiggly',
   },
 };

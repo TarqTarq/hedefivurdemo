@@ -26,8 +26,12 @@ Ad, tema/karakter ve arkadaşla düello modu **sonraya bırakıldı** (2026-11-1
 - Ayrıştırıcı eval kullanmaz. `+ − × ÷ ^`, parantez, örtük çarpma (`2x`, `3sin(x)`, `(x+1)(x−1)`), tekli eksi (`−x^2 = −(x^2)`),
   `sin cos tan abs sqrt exp ln log`, `π e`. Eksik kapanış parantezleri sonda kendiliğinden kapanır.
 - **Parça sayısı** = ağaçtaki düğüm sayısı (bir sayı 1 parça). `2x`=3, `sin(x)`=2, `−(x−4)²+12`=8.
-- Simülasyon: adım 0.02, 0.08'den uzun parçalar bölünür; 12 bölmeden sonra hâlâ uzunsa veya sonsuzsa **yol koptu**.
-- Sonuçlar: `win`, `wall`, `out` (y sınırı), `broken`, `miss` (x = 30'a vardı), `off` (ters bulmacada eğriden çıktı).
+- Simülasyon: adım ~0.02 ama **düzensiz** (0.7–1.3 kat, altın oran sırası; sabit adımda `sin(50πx)` kontrol noktalarında 0 olup
+  ters bulmacayı geçiyordu). 0.08'den uzun parçalar bölünür; 12 bölmeden sonra hâlâ uzunsa: tahta dışına gidiyorsa **out**,
+  orta nokta iki ucun arasındaysa (dik ama kesintisiz, `100000x`) devam, değilse (sıçrama) **broken**. 20 000 noktayı aşan yol
+  **wiggle** ("çok dalgalı"; telefonu dondurmasın). Uç durum ve 5000 ifadelik bulanık test `tools/verify.js` içinde.
+- Ayrıştırıcı: boşluk ayırıcıdır (`2 3` = 6), `√x` parantezsiz de olur. `1e5` bilimsel gösterim değil, 1·e·5 (e sabiti).
+- Sonuçlar: `win`, `wall`, `out` (y sınırı), `broken`, `miss` (x = 30'a vardı), `off` (ters bulmacada eğriden çıktı), `wiggle`.
 - **Ters bulmaca** (`level.shape = {fn, from, to}`): x ∈ [from, to] boyunca y = g(x) olmalı; `to`'ya varınca kazanır.
   Kesin: y = g(x) (1e-6); şerit yalnız görsel. Hedef ve elmas yok; `marks` noktalarının koordinatları yazılır (tam sayı). Yıldız: ★ izledin · ★★ (kendiliğinden) · ★★★ parça sınırı.
 - Yıldızlar: ★ hedef · ★★ bütün elmaslar · ★★★ elmaslar + en fazla `limit` parça (verilmezse örnek çözümünki).

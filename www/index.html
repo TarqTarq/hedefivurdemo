@@ -918,7 +918,8 @@ function draw() {
 
   // Son denemenin bitişi: çarpma işareti
   if (!A && S.last && S.last.result !== 'win' && S.last.path.length) {
-    const [ex, ey] = S.last.path[S.last.path.length - 1];
+    const [ex, eyRaw] = S.last.path[S.last.path.length - 1];
+    const ey = Math.max(B.ymin - 0.5, Math.min(B.ymax + 0.5, eyRaw));  // tahtanın çok dışında bittiyse kenarda göster
     const r = 7;
     ctx.save(); ctx.strokeStyle = C.danger; ctx.lineWidth = 3; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(X(ex) - r, Y(ey) - r); ctx.lineTo(X(ex) + r, Y(ey) + r); ctx.moveTo(X(ex) + r, Y(ey) - r); ctx.lineTo(X(ex) - r, Y(ey) + r); ctx.stroke();
@@ -926,7 +927,7 @@ function draw() {
   }
 
   // Karakter: yazarken yolun başladığı yerde (x = 0, y = f(0)) bekler
-  if (A) drawChar(cx, cy, 1);
+  if (A) drawChar(cx, Math.max(B.ymin - 0.5, Math.min(B.ymax + 0.5, cy)), 1);
   else drawChar(start[0], start[1], S.last ? 0.5 : 1);
 }
 
