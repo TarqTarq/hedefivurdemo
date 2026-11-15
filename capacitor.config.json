@@ -1,0 +1,19 @@
+{
+  "appId": "com.littlelemmastudio.hedefivur",
+  "appName": "Hedefi Vur",
+  "webDir": "www",
+  "backgroundColor": "#f4efe6",
+  "ios": {
+    "scrollEnabled": false,
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "launchAutoHide": true,
+      "launchFadeOutDuration": 300,
+      "backgroundColor": "#f4efe6",
+      "showSpinner": false
+    }
+  }
+}

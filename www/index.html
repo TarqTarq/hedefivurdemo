@@ -931,6 +931,13 @@ function draw() {
 }
 
 /* ===================== AÇILIŞ ===================== */
+// Telefonda (Capacitor) durum çubuğu temaya uysun: açık temada koyu yazı, koyu temada açık yazı
+{
+  const SB = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar;
+  const mq = matchMedia('(prefers-color-scheme: dark)');
+  const sync = () => SB && SB.setStyle({ style: mq.matches ? 'DARK' : 'LIGHT' }).catch(() => {});
+  sync(); mq.addEventListener('change', sync);
+}
 readColors();
 applyStatic();
 renderLevels();

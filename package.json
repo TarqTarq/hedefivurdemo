@@ -7,5 +7,14 @@
     "verify": "node tools/verify.js && node scripts/check-locales.js",
     "serve": "node scripts/serve.js",
     "place": "node tools/place.js"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.6.2",
+    "@capacitor/ios": "8.6.2",
+    "@capacitor/splash-screen": "8.0.2",
+    "@capacitor/status-bar": "8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.2"
   }
 }
