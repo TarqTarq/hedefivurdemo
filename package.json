@@ -1,0 +1,11 @@
+{
+  "name": "hedefivur",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hedefi Vur (çalışma adı): fonksiyon yazarak engelleri aşma bulmacası (Little Lemma)",
+  "scripts": {
+    "verify": "node tools/verify.js && node scripts/check-locales.js",
+    "serve": "node scripts/serve.js",
+    "place": "node tools/place.js"
+  }
+}

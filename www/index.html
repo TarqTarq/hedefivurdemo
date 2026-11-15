@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Hedefi Vur</title>
+<style>
+/* ===================== STİL =====================
+   Görsel dil (2026-11-15, sahip The Almanac'ın tasarımını beğendi; ilham, kopya değil):
+   krem kâğıt zemin, koyu mürekkep kenarlı kartlar ve sert kaymış gölgeler, düz pastel dolgular,
+   eğik serif başlıklar, küçük monospace etiketler. Her dünyanın kendi pastel rengi var (--c / --cd). */
+:root {
+  --bg: #f4efe6; --paper: #fbf8f2; --ink: #2b2622; --muted: #7a7064; --line: #2b2622;
+  --cell: #e8e1d5; --cell2: #efe9df;
+  --p1: #a9c4ec; --p1d: #7d9fd6;   /* gök */
+  --p2: #f4a29b; --p2d: #e07a72;   /* mercan */
+  --p3: #f9c891; --p3d: #efa961;   /* şeftali */
+  --p4: #aed9a8; --p4d: #84bf7d;   /* nane */
+  --p5: #c4b8f0; --p5d: #9d8de0;   /* lavanta */
+  --p6: #e8c7f0; --p6d: #cf9fdc;   /* leylak */
+  --p7: #f5dc7a; --p7d: #e3bf3f;   /* limon */
+  --board: #fbf8f2; --grid: rgba(43,38,34,.07); --grid-strong: rgba(43,38,34,.16); --axis: #2b2622; --tick: #7a7064; --outside: rgba(43,38,34,.07);
+  --wall: #c4b8f0; --wall-ink: #2b2622; --gem: #a9c4ec; --gem-ink: #2b2622;
+  --target: #f4a29b; --target-ink: #2b2622; --char: #2b2622; --path: #e0625a; --ghost: rgba(43,38,34,.18);
+  --label: #fbf8f2; --label-ink: #2b2622; --danger: #c8443b; --star: #f2b630; --star-off: #d8d0c3; --overlay: rgba(43,38,34,.45);
+  --serif: ui-serif, "New York", "Iowan Old Style", Georgia, serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: system-ui, -apple-system, "SF Pro Text", sans-serif;
+  --hard: 0 3px 0 var(--line);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1916; --paper: #26221e; --ink: #f2ebdf; --muted: #a89e90; --line: #0d0b09;
+    --cell: #34302a; --cell2: #2e2a25;
+    --p1: #6f8fc4; --p1d: #4f6fa3; --p2: #c9736c; --p2d: #a4554f; --p3: #c99a5e; --p3d: #a67a42;
+    --p4: #78a873; --p4d: #5a8756; --p5: #8c7fcb; --p5d: #6c5fae; --p6: #b48dc0; --p6d: #946ea1; --p7: #c4ab4c; --p7d: #a08a33;
+    --board: #26221e; --grid: rgba(242,235,223,.05); --grid-strong: rgba(242,235,223,.13); --axis: #d9d0c2; --tick: #a89e90; --outside: rgba(0,0,0,.25);
+    --wall: #8c7fcb; --wall-ink: #0d0b09; --gem: #6f8fc4; --gem-ink: #0d0b09;
+    --target: #c9736c; --target-ink: #0d0b09; --char: #f2ebdf; --path: #ff8a7e; --ghost: rgba(242,235,223,.16);
+    --label: #34302a; --label-ink: #f2ebdf; --star-off: #4a443c; --overlay: rgba(0,0,0,.6);
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans);
+  overscroll-behavior: none; user-select: none; -webkit-user-select: none; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0; }
+.app { max-width: 560px; margin: 0 auto; height: 100%; display: flex; flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 8px) 14px calc(env(safe-area-inset-bottom) + 10px); }
+.hidden { display: none !important; }
+.serif { font-family: var(--serif); }
+.mono { font-family: var(--mono); }
+.card { background: var(--paper); border: 2px solid var(--line); border-radius: 16px; box-shadow: var(--hard); }
+svg.ic { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Ana ekran ---------- */
+#levels { overflow-y: auto; flex: 1; padding-bottom: 24px; scrollbar-width: none; }
+#levels::-webkit-scrollbar { display: none; }
+.home-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 2px 2px; border-bottom: 2px solid var(--line); }
+.brand { font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 32px; letter-spacing: -.01em; }
+.score { font-family: var(--mono); font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+.score b { color: var(--star); font-size: 18px; }
+.tagline { font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 10px 2px 16px; }
+.wcard { margin-bottom: 18px; overflow: hidden; background: var(--c); }
+.wcard .whead { display: flex; gap: 12px; align-items: flex-start; padding: 14px 14px 10px; }
+.wcard .whead > div:first-child { flex: 1; }
+.wcard h2 { font-family: var(--serif); font-weight: 600; font-size: 25px; margin: 0; letter-spacing: -.01em; color: #2b2622; }
+.wcard p { font-family: var(--mono); font-size: 12.5px; margin: 4px 0 0; color: #2b2622; opacity: .8; }
+.wicon { width: 54px; height: 54px; flex: none; border: 2px solid var(--line); border-radius: 13px; background: var(--paper); box-shadow: var(--hard); }
+.wicon svg { width: 100%; height: 100%; display: block; }
+.wlevels { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 2px 14px 14px; }
+.lv { aspect-ratio: 1; border: 2px solid var(--line); border-radius: 11px; background: var(--paper); box-shadow: 0 2px 0 var(--line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 700; font-size: 16px; gap: 1px; color: var(--ink); }
+.lv:active { transform: translateY(2px); box-shadow: none; }
+.lv small { font-size: 8px; letter-spacing: 1px; color: var(--star); line-height: 1; }
+.lv small i { color: var(--star-off); font-style: normal; }
+.lv.done { background: var(--cd); color: #2b2622; }
+.lv.done small i { color: rgba(43,38,34,.3); }
+.lv[disabled] { opacity: .35; cursor: default; }
+.wfoot { background: var(--cd); border-top: 2px solid var(--line); padding: 7px 14px; font-family: var(--mono); font-size: 12.5px; font-weight: 700;
+  display: flex; justify-content: space-between; color: #2b2622; }
+
+/* ---------- Oyun ekranı ---------- */
+#play { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 9px; }
+.top { display: flex; align-items: center; gap: 10px; min-height: 46px; }
+.top .back { width: 40px; height: 40px; display: grid; place-items: center; }
+.top .ttl { flex: 1; text-align: center; line-height: 1.15; }
+.top .title { font-family: var(--serif); font-weight: 600; font-size: 21px; }
+.top .tries { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.top .best { min-width: 0; text-align: right; color: var(--star); font-size: 14px; letter-spacing: 1px; }
+.top .best i { color: var(--star-off); font-style: normal; }
+.boardWrap { position: relative; width: 100%; flex: 1 1 0; min-height: 220px; overflow: hidden; background: var(--board); }
+canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.camBtns { position: absolute; right: 8px; bottom: 10px; display: flex; flex-direction: column; gap: 7px; }
+.camBtns button { width: 34px; height: 34px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: 0 2px 0 var(--line);
+  display: grid; place-items: center; }
+.camBtns button:active { transform: translateY(2px); box-shadow: none; }
+.camBtns button.on { background: var(--p1); color: #2b2622; }
+.camBtns svg.ic { width: 16px; height: 16px; }
+.toast { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); background: var(--paper); color: var(--danger);
+  border: 2px solid var(--line); box-shadow: 0 2px 0 var(--line); padding: 5px 14px; border-radius: 999px; font-family: var(--mono); font-weight: 700; font-size: 13px;
+  transition: opacity .25s; pointer-events: none; white-space: nowrap; }
+.goals { display: flex; gap: 6px; flex-wrap: wrap; }
+.goal { border: 2px solid var(--line); border-radius: 999px; padding: 3px 10px; font-family: var(--mono); font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; gap: 5px; color: var(--muted); background: var(--paper); }
+.goal b { color: var(--star-off); font-size: 14px; }
+.goal.on { color: #2b2622; background: #fbe3a0; } .goal.on b { color: #e0a400; }
+.hint { font-size: 14px; line-height: 1.4; color: var(--muted); min-height: 19px; padding: 0 2px; }
+.hint b { color: var(--ink); font-family: var(--serif); font-size: 15.5px; font-weight: 700; }
+.expr { min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 10px; }
+.expr .txt { flex: 1; font-size: 26px; font-weight: 700; overflow-x: auto; white-space: nowrap; scrollbar-width: none; cursor: text; }
+.expr .txt::-webkit-scrollbar { display: none; }
+.expr .txt .caret { display: inline-block; width: 2px; height: 26px; background: var(--path); vertical-align: -4px; margin: 0 -1px; animation: blink 1s steps(2) infinite; }
+.expr .txt .ph { color: var(--muted); opacity: .7; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 22px; }
+.expr .txt .pc { padding: 0 1px; }
+@keyframes blink { 50% { opacity: 0; } }
+.expr .cost { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.expr .cost.err { color: var(--danger); }
+.var { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1.12em; }
+.pad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.pad.fns { grid-template-columns: repeat(7, 1fr); }
+.k { height: 48px; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: var(--hard);
+  font-size: 21px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-bottom: 3px; }
+.k:active { transform: translateY(3px); box-shadow: none; }
+.k.op { background: var(--cell); }
+.k.fn { background: var(--p1); color: #2b2622; font-size: 17px; height: 40px; }
+.k.fn.nav { background: var(--cell); color: var(--ink); }
+.k.go { background: var(--p2); color: #2b2622; font-family: var(--serif); font-style: italic; font-size: 19px; }
+.k[disabled] { opacity: .45; }
+.pad.busy .k { pointer-events: none; opacity: .55; }
+
+/* ---------- Sonuç penceresi ---------- */
+.modal { position: fixed; inset: 0; background: var(--overlay); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10; }
+.sheet { padding: 24px 20px 18px; width: 100%; max-width: 340px; text-align: center; }
+.sheet h2 { margin: 0 0 4px; font-family: var(--serif); font-style: italic; font-size: 34px; font-weight: 700; }
+.stars { font-size: 44px; letter-spacing: 8px; margin: 2px 0 8px; }
+.stars span { color: var(--star-off); display: inline-block; transform: scale(.6); transition: transform .3s, color .3s; -webkit-text-stroke: 2px var(--line); }
+.stars span.on { color: var(--star); transform: scale(1); }
+.sheet p { margin: 4px 0; color: var(--muted); font-family: var(--mono); font-size: 13px; }
+.sheet .row { display: flex; gap: 10px; margin-top: 18px; }
+.sheet .row button { flex: 1; height: 48px; border: 2px solid var(--line); border-radius: 12px; box-shadow: var(--hard); background: var(--cell);
+  font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 18px; }
+.sheet .row button.main { background: var(--p2); color: #2b2622; }
+.sheet .row button:active { transform: translateY(3px); box-shadow: none; }
+
+/* ---------- Ders penceresi ---------- */
+.sheet.lesson { text-align: left; max-width: 390px; max-height: 92vh; overflow-y: auto; }
+.lesson .ltag { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.lesson h2 { font-style: normal; font-size: 27px; margin: 2px 0 10px; }
+.lgraph { border: 2px solid var(--line); border-radius: 12px; background: var(--board); overflow: hidden; }
+.lgraph svg { display: block; width: 100%; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 9px 2px 4px; font-size: 17px; font-weight: 600; }
+.legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 20px; height: 0; border-top: 3px solid; }
+.legend i.base { border-top-style: dashed; opacity: .6; }
+.sheet .lbody { font-family: var(--sans); font-size: 15px; line-height: 1.5; color: var(--ink); margin: 8px 2px 0; }
+.lbody .f, .legend .f { font-weight: 700; white-space: nowrap; }
+.top .side { display: flex; align-items: center; gap: 6px; }
+.top .help { width: 34px; height: 34px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: 0 2px 0 var(--line);
+  font-family: var(--serif); font-weight: 700; font-size: 18px; display: grid; place-items: center; }
+.top .help:active { transform: translateY(2px); box-shadow: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <section id="levels">
+    <div class="home-top"><div class="brand" data-t="app.name"></div><div class="score"><b>★</b><span id="totalStars"></span></div></div>
+    <p class="tagline" data-t="app.tagline"></p>
+    <div id="worlds"></div>
+  </section>
+
+  <section id="play" class="hidden">
+    <div class="top">
+      <button class="back" id="backBtn" aria-label="back"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="ttl"><div class="title" id="lvTitle"></div><div class="tries" id="tries"></div></div>
+      <div class="side"><div class="best" id="bestStars"></div><button class="help" id="helpBtn" data-t-aria="lesson.help" aria-label="?">?</button></div>
+    </div>
+    <div class="boardWrap card" id="boardWrap">
+      <canvas id="cv"></canvas>
+      <div class="camBtns"><button id="ghostBtn" aria-label="ghost graph"><svg class="ic" viewBox="0 0 24 24"><path d="M3 19c3-14 6-14 9-7s6 7 9-7" stroke-dasharray="3 3"/></svg></button><button id="zoomIn" aria-label="zoom in"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button><button id="zoomOut" aria-label="zoom out"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><button id="zoomReset" aria-label="reset view"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6"/></svg></button></div>
+      <div class="toast" id="toast" style="opacity:0"></div>
+    </div>
+    <div class="goals" id="goals"></div>
+    <div class="hint" id="hint"></div>
+    <div class="expr card"><div class="txt" id="exprTxt"></div><div class="cost" id="exprCost"></div></div>
+    <div class="pad fns" id="fnPad"></div>
+    <div class="pad" id="pad"></div>
+  </section>
+</div>
+
+<div class="modal hidden" id="lessonModal">
+  <div class="sheet card lesson">
+    <div class="ltag" id="lessonTag"></div>
+    <h2 id="lessonTitle"></h2>
+    <div class="lgraph" id="lessonGraph"></div>
+    <div class="legend" id="lessonLegend"></div>
+    <p class="lbody" id="lessonBody"></p>
+    <div class="row"><button class="main" id="lessonBtn"></button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="winModal">
+  <div class="sheet card">
+    <h2 data-t="win.title"></h2>
+    <div class="stars" id="winStars"><span>★</span><span>★</span><span>★</span></div>
+    <p id="winCost"></p>
+    <p id="winNeed"></p>
+    <div class="row">
+      <button id="againBtn" data-t="win.again"></button>
+      <button id="nextBtn" class="main" data-t="win.next"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tarayıcı eski dosyaları önbellekten kullanmasın (ham 'lv.2-10' anahtarları görünüyordu): adreslere sürüm ekle.
+{ const v = Date.now(); for (const f of ['locales/tr.js', 'locales/en.js', 'engine.js', 'levels.js']) document.write(`<script src="${f}?v=${v}"><\/script>`); }
+</script>
+<script>
+'use strict';
+/* ===================== DİL ===================== */
+const LOCALES = window.LOCALES || {};
+const FALLBACK_LANG = 'en';
+const DEV = Object.fromEntries(new URLSearchParams(location.search));
+function detectLang() {
+  if (DEV.lang && LOCALES[DEV.lang]) return DEV.lang;
+  for (const l of navigator.languages || [navigator.language || 'en']) {
+    const base = String(l).toLowerCase().split('-')[0];
+    if (LOCALES[base]) return base;
+  }
+  return FALLBACK_LANG;
+}
+const lang = detectLang();
+document.documentElement.lang = lang;
+function t(key, p = {}) {
+  let s = LOCALES[lang]?.strings[key] ?? LOCALES[FALLBACK_LANG]?.strings[key] ?? key;
+  return s.replace(/\{(\w+)\}/g, (_, k) => (k in p ? p[k] : `{${k}}`));
+}
+function applyStatic() {
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+  document.querySelectorAll('[data-t-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.tAria)));
+}
+
+/* ===================== KAYIT ===================== */
+// Şimdilik yalnız localStorage. Stüdyo kitindeki Preferences yedeği Capacitor aşamasında eklenecek.
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+const progress = store.get('hv-progress', { stars: {}, best: {} });
+const saveProgress = () => store.set('hv-progress', progress);
+
+/* ===================== OYUN DURUMU ===================== */
+const $ = id => document.getElementById(id);
+const LEVELS = window.LEVELS;
+const S = {
+  level: null,   // şu anki bölüm
+  pieces: [],    // tuşlara basıldıkça eklenen parçalar (⌫ imleçten önceki parçayı siler)
+  cursor: 0,     // imleç: pieces içindeki konum (0 = en baş)
+  parsed: null,  // canlı ayrıştırma sonucu
+  ghosts: [],    // önceki denemelerin yolları
+  anim: null,    // uçuş animasyonu
+  last: null,    // son denemenin sonucu (çizim için)
+  tries: 0,
+};
+
+// Ek tuşlar (bölümün `keys` listesinde açılır). ins: ifadeye eklenen metin.
+const FN_KEYS = {
+  abs: { label: '|<span class="var">x</span>|', ins: 'abs(' },
+  sq:  { label: '<span class="var">x</span>²', ins: '^2' },
+  pow: { label: '^', ins: '^' },
+  sqrt:{ label: '√', ins: 'sqrt(' },
+  sin: { label: 'sin', ins: 'sin(' },
+  cos: { label: 'cos', ins: 'cos(' },
+  pi:  { label: 'π', ins: 'π' },
+};
+// Ekranda parça nasıl görünür
+const pretty = s => s.replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−').replace(/sqrt\(/g, '√(').replace(/\^2/g, '²');
+// Değişken x, çarpma × ile karışmasın: eğik matematik harfi (HTML döndürür)
+const VAR_X = '<span class="var">x</span>';
+const prettyHtml = s => pretty(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/(?<!e)x/g, VAR_X);
+
+/* ===================== DERSLER =====================
+   Bölüm başlamadan açılan pencere (bölüm bitmediyse) ve başlıktaki ? düğmesi.
+   Her dersin küçük grafiği: ilk eğri kesikli "ana" eğri, sonrakiler renkli dönüşmüş hâlleri.
+   Metinler locales 'lesson.<ad>.title/body'; metindeki `formül`ler matematik yazısına çevrilir. */
+const LESSONS = {
+  flat:        { view: [-2, 10, -4, 4],   curves: ['0'] },
+  slope:       { view: [-1, 8, -1, 8],    curves: ['x', '2x', 'x/2'] },
+  flipLine:    { view: [-1, 8, -7, 7],    curves: ['x', '-x'] },
+  shiftLine:   { view: [-1, 12, -7, 9],   curves: ['x/2', 'x/2+4', 'x/2-6'] },
+  lineAll:     { view: [-1, 13, -1, 10],  curves: ['-2x/3+8'], marks: [0, 3, 12] },
+  parabola:    { view: [-4, 4, -1, 10],   curves: ['x^2'], marks: [1, 2, 3] },
+  flipCurve:   { view: [-4, 4, -10, 10],  curves: ['x^2', '-x^2'] },
+  shiftH:      { view: [-6, 7, -1, 10],   curves: ['x^2', '(x-3)^2', '(x+2)^2'] },
+  shiftV:      { view: [-4, 4, -9, 12],   curves: ['x^2', 'x^2+5', 'x^2-8'] },
+  combo:       { view: [-3, 10, -6, 14],  curves: ['x^2', '-(x-4)^2+12'], marks: [4] },
+  narrow:      { view: [-4, 4, -1, 10],   curves: ['x^2', '2x^2', '3x^2'] },
+  wide:        { view: [-7, 7, -1, 10],   curves: ['x^2', 'x^2/2', 'x^2/4'] },
+  stretchFlip: { view: [-6, 6, -9, 9],    curves: ['x^2', '-2x^2', '-x^2/4'] },
+  stretchAll:  { view: [-2, 14, -10, 6],  curves: ['x^2', '(x-6)^2/4-9'], marks: [6] },
+  corner:      { view: [-6, 10, -1, 9],   curves: ['abs(x)', 'abs(x-4)'] },
+  cornerRules: { view: [-6, 6, -6, 9],    curves: ['abs(x)', '2abs(x)', 'abs(x)/2', '-abs(x)'] },
+  cornerSum:   { view: [-1, 17, -10, 10], curves: ['abs(x-4)', '-abs(x-12)', 'abs(x-4)-abs(x-12)'] },
+  wave:        { view: [-1, 13, -3, 3],   curves: ['sin(πx/2)'], marks: [1, 3, 5] },
+  waveHeight:  { view: [-1, 13, -4, 4],   curves: ['sin(πx/2)', '3sin(πx/2)', '-3sin(πx/2)'] },
+  waveSpeed:   { view: [-1, 17, -4, 4],   curves: ['3sin(πx/2)', '3sin(πx/4)'] },
+  waveShift:   { view: [-1, 17, -4, 10],  curves: ['3sin(πx/4)', '3sin(πx/4)+6'] },
+  sum:         { view: [-1, 13, -2, 13],  curves: ['x', 'sin(πx/2)', 'x+sin(πx/2)'] },
+  reverse:     { view: [-1, 8, -6, 10],   curves: ['(x-3)^2-4'], marks: [0, 3, 7] },
+};
+const LESSON_COLORS = ['var(--path)', 'var(--p1d)', 'var(--p4d)', 'var(--p5d)'];
+// Formülü ekranda göster: abs(…) → |…|, ^2 → ², eğik x
+const mathHtml = src => prettyHtml(String(src).replace(/abs\(([^()]*)\)/g, '|$1|')).replace(/÷/g, '/');
+
+function lessonSvg(L) {
+  const W = 320, H = 190, [x0, x1, y0, y1] = L.view;
+  const k = Math.min(W / (x1 - x0), H / (y1 - y0));
+  const ox = (W - (x1 - x0) * k) / 2, oy = (H - (y1 - y0) * k) / 2;
+  const px = x => (ox + (x - x0) * k).toFixed(1), py = y => (oy + (y1 - y) * k).toFixed(1);
+  let g = '';
+  for (let x = Math.ceil(x0); x <= x1; x++) g += `M${px(x)} ${py(y0)}V${py(y1)}`;
+  for (let y = Math.ceil(y0); y <= y1; y++) g += `M${px(x0)} ${py(y)}H${px(x1)}`;
+  let out = `<svg viewBox="0 0 ${W} ${H}"><path d="${g}" stroke="var(--ink)" stroke-opacity=".08" stroke-width="1"/>
+    <path d="M${px(x0)} ${py(0)}H${px(x1)}M${px(0)} ${py(y0)}V${py(y1)}" stroke="var(--axis)" stroke-width="1.5"/>`;
+  const multi = L.curves.length > 1;
+  L.curves.forEach((src, i) => {
+    const f = Engine.parse(src).fn;
+    let d = '', pen = false;
+    for (let x = x0; x <= x1 + 1e-9; x += (x1 - x0) / 320) {
+      const y = f(x);
+      if (!Number.isFinite(y) || y > y1 + 2 || y < y0 - 2) { pen = false; continue; }
+      d += `${pen ? 'L' : 'M'}${px(x)} ${py(y)}`; pen = true;
+    }
+    const base = multi && i === 0;
+    const color = base ? 'var(--ink)' : LESSON_COLORS[(multi ? i - 1 : 0) % LESSON_COLORS.length];
+    out += `<path d="${d}" fill="none" stroke="${color}" stroke-width="${base ? 2 : 3}" ${base ? 'stroke-dasharray="5 5" stroke-opacity=".55"' : ''} stroke-linecap="round" stroke-linejoin="round"/>`;
+  });
+  const last = Engine.parse(L.curves[L.curves.length - 1]).fn;
+  for (const mx of L.marks || []) {
+    const my = last(mx);
+    out += `<circle cx="${px(mx)}" cy="${py(my)}" r="4" fill="var(--ink)"/>
+      <text x="${px(mx)}" y="${+py(my) - 9}" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700" fill="var(--ink)">(${fmtNum(mx)}, ${fmtNum(my)})</text>`;
+  }
+  return out + '</svg>';
+}
+
+function showLesson(L, auto) {
+  const key = L.lesson, D = LESSONS[key];
+  if (!D) return;
+  $('lessonTag').textContent = `${t('world.' + L.world)} · ${t('play.level', { n: L.id })}`;
+  $('lessonTitle').textContent = t(`lesson.${key}.title`);
+  $('lessonGraph').innerHTML = lessonSvg(D);
+  const multi = D.curves.length > 1;
+  $('lessonLegend').innerHTML = D.curves.map((c, i) => {
+    const base = multi && i === 0;
+    const color = base ? 'var(--ink)' : LESSON_COLORS[(multi ? i - 1 : 0) % LESSON_COLORS.length];
+    return `<span><i class="${base ? 'base' : ''}" style="border-color:${color}"></i><span class="f">${mathHtml(c)}</span></span>`;
+  }).join('');
+  $('lessonBody').innerHTML = t(`lesson.${key}.body`).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/`([^`]+)`/g, (_, f) => `<span class="f">${mathHtml(f)}</span>`);
+  $('lessonBtn').textContent = t(auto ? 'lesson.start' : 'lesson.close');
+  $('lessonModal').classList.remove('hidden');
+}
+const lessonOpen = () => !$('lessonModal').classList.contains('hidden');
+$('lessonBtn').onclick = () => $('lessonModal').classList.add('hidden');
+$('lessonModal').addEventListener('click', e => { if (e.target.id === 'lessonModal') $('lessonModal').classList.add('hidden'); });
+$('helpBtn').onclick = () => S.level && showLesson(S.level, false);
+
+/* ===================== BÖLÜM LİSTESİ ===================== */
+// Geliştirme aşamasında bütün bölümler açık. Yayından önce false yap (sıradaki bölüm, öncekinden yıldız alınca açılır).
+const UNLOCK_ALL = true;
+function unlocked(L) {
+  if (UNLOCK_ALL || DEV.dev != null) return true;
+  const i = LEVELS.indexOf(L);
+  return i === 0 || (progress.stars[LEVELS[i - 1].id] || 0) > 0;
+}
+// Her dünyanın kartında kendi eğrisinin minik ikonu (ızgara + eğri)
+const WORLD_ICON = {
+  1: 'M9 45 L45 11',
+  2: 'M12 9 Q27 70 42 9',
+  3: 'M7 18 Q27 52 47 18 M17 9 Q27 60 37 9',
+  4: 'M9 12 L27 42 L45 12',
+  5: 'M7 27 C13 7, 20 7, 27 27 S41 47, 47 27',
+  6: 'M7 45 C12 33, 15 39, 20 33 S27 25, 31 23 S39 13, 47 9',
+  7: 'M8 40 Q27 -2 46 40',
+};
+function worldIcon(w) {
+  const grid = [18, 27, 36].map(v => `M${v} 4V50M4 ${v}H50`).join(' ');
+  return `<svg viewBox="0 0 54 54"><path d="${grid}" stroke="currentColor" stroke-opacity=".12" stroke-width="1.5" fill="none"/>
+    <path d="${WORLD_ICON[w] || ''}" stroke="var(--path)" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function renderLevels() {
+  const total = LEVELS.reduce((s, L) => s + (progress.stars[L.id] || 0), 0);
+  $('totalStars').textContent = `${total} / ${LEVELS.length * 3}`;
+  const worlds = [...new Set(LEVELS.map(L => L.world))];
+  $('worlds').innerHTML = worlds.map(w => {
+    const list = LEVELS.filter(L => L.world === w);
+    const got = list.reduce((s, L) => s + (progress.stars[L.id] || 0), 0);
+    const done = list.filter(L => progress.stars[L.id]).length;
+    return `<div class="wcard card" style="--c: var(--p${w}); --cd: var(--p${w}d)">
+      <div class="whead"><div><h2>${t('world.' + w)}</h2><p>${t('world.' + w + '.sub')}</p></div><div class="wicon">${worldIcon(w)}</div></div>
+      <div class="wlevels">${list.map(L => {
+        const s = progress.stars[L.id] || 0;
+        return `<button class="lv ${s ? 'done' : ''}" data-id="${L.id}" ${unlocked(L) ? '' : 'disabled'}>${L.n}
+          <small>${'★'.repeat(s)}<i>${'★'.repeat(3 - s)}</i></small></button>`;
+      }).join('')}</div>
+      <div class="wfoot"><span>${t('levels.done', { n: done, t: list.length })}</span><span>★ ${got} / ${list.length * 3}</span></div>
+    </div>`;
+  }).join('');
+}
+$('worlds').addEventListener('click', e => {
+  const b = e.target.closest('.lv');
+  if (b && !b.disabled) openLevel(LEVELS.find(L => L.id === b.dataset.id));
+});
+
+function showScreen(name) {
+  $('levels').classList.toggle('hidden', name !== 'levels');
+  $('play').classList.toggle('hidden', name !== 'play');
+  if (name === 'levels') renderLevels(); else resize();
+}
+
+/* ===================== OYUN EKRANI ===================== */
+function openLevel(L) {
+  S.level = L; S.pieces = []; S.cursor = 0; S.ghosts = []; S.anim = null; S.last = null; S.tries = 0; S.camAuto = true;
+  $('lvTitle').textContent = t('world.' + L.world);
+  readColors();
+  $('hint').innerHTML = `<b>${t('topic.' + L.topic)}.</b> ${t('lv.' + L.id)}`;
+  buildPad();
+  updateExpr();
+  showScreen('play');
+  resetCamera();
+  // Ders: yalnız yeni bir konu ilk kez geldiğinde kendiliğinden açılır (her ders bir kez); sonra yalnız ? ile.
+  progress.seen = progress.seen || {};
+  if (L.lesson && !progress.seen[L.lesson] && DEV.nolesson == null) {
+    showLesson(L, true);
+    progress.seen[L.lesson] = true;
+    saveProgress();
+  } else $('lessonModal').classList.add('hidden');
+}
+
+function buildPad() {
+  const keys = DEV.dev != null ? Object.keys(FN_KEYS) : (S.level.keys || []);
+  $('fnPad').innerHTML = keys.map(k => `<button class="k fn" data-ins="${FN_KEYS[k].ins}">${FN_KEYS[k].label}</button>`).join('') +
+    `<button class="k fn nav" data-ins="←" aria-label="left"><svg class="ic" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button class="k fn nav" data-ins="→" aria-label="right"><svg class="ic" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>`;
+  $('fnPad').style.gridTemplateColumns = `repeat(${Math.max(keys.length + 2, 5)}, 1fr)`;
+  const rows = [
+    ['7', '8', '9', ['/', '÷', 'op'], ['⌫', '<svg class="ic" viewBox="0 0 24 24"><path d="M9 6h11v12H9l-6-6z M12 9.5l5 5M17 9.5l-5 5"/></svg>', 'op del']],
+    ['4', '5', '6', ['*', '×', 'op'], ['(', '(', 'op']],
+    ['1', '2', '3', ['-', '−', 'op'], [')', ')', 'op']],
+    ['0', '.', ['x', VAR_X, ''], ['+', '+', 'op'], ['go', t('play.launch'), 'go']],
+  ];
+  $('pad').innerHTML = rows.flat().map(k => {
+    const [ins, label, cls] = Array.isArray(k) ? k : [k, k, ''];
+    return `<button class="k ${cls}" data-ins="${ins}">${label}</button>`;
+  }).join('');
+}
+
+function press(ins) {
+  if (S.anim) return;
+  if (!['go', '←', '→', 'home', 'end'].includes(ins)) S.last = null; // yazmaya başlayınca son yol silinir (soluk iz olarak kalır)
+  if (ins === 'go') return launch();
+  if (ins === '←') S.cursor = Math.max(0, S.cursor - 1);
+  else if (ins === '→') S.cursor = Math.min(S.pieces.length, S.cursor + 1);
+  else if (ins === 'home') S.cursor = 0;
+  else if (ins === 'end') S.cursor = S.pieces.length;
+  else if (ins === '⌫') { if (S.cursor > 0) S.pieces.splice(--S.cursor, 1); }
+  else if (ins === 'del') S.pieces.splice(S.cursor, 1);
+  else if (S.pieces.length < 40) S.pieces.splice(S.cursor++, 0, ins);
+  updateExpr();
+}
+for (const pad of [$('pad'), $('fnPad')]) {
+  pad.addEventListener('pointerdown', e => {
+    const b = e.target.closest('.k');
+    if (!b) return;
+    e.preventDefault();
+    press(b.dataset.ins);
+  });
+}
+// Bilgisayarda klavyeyle de yazılabilsin (geliştirme kolaylığı)
+document.addEventListener('keydown', e => {
+  if (lessonOpen()) { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); $('lessonModal').classList.add('hidden'); } return; }
+  if ($('play').classList.contains('hidden') || !$('winModal').classList.contains('hidden')) {
+    if (e.key === 'Enter' && !$('winModal').classList.contains('hidden')) $('nextBtn').click();
+    return;
+  }
+  if (e.metaKey || e.ctrlKey) return;
+  if (e.key === 'Enter') return press('go');
+  if (e.key === 'Backspace') return press('⌫');
+  if (e.key === 'Delete') return press('del');
+  if (e.key === 'ArrowLeft') return press('←');
+  if (e.key === 'ArrowRight') return press('→');
+  if (e.key === 'Home') return press('home');
+  if (e.key === 'End') return press('end');
+  if (e.key === 'Escape') return showScreen('levels');
+  if (/^[0-9a-z.,+\-*/^()]$/i.test(e.key)) press(e.key.toLowerCase());
+});
+
+function updateExpr() {
+  const src = S.pieces.join('');
+  S.parsed = src ? Engine.parse(src) : null;
+  const txt = $('exprTxt'), cost = $('exprCost');
+  const caret = '<span class="caret"></span>';
+  if (!src) txt.innerHTML = caret + `<span class="ph">${t('play.placeholder')}</span>`;
+  else txt.innerHTML = S.pieces.map((p, i) => (i === S.cursor ? caret : '') + `<span class="pc" data-i="${i}">${prettyHtml(p)}</span>`).join('') +
+    (S.cursor === S.pieces.length ? caret : '');
+  // İmleç görünür kalsın
+  const c = txt.querySelector('.caret');
+  if (c.offsetLeft < txt.scrollLeft + 10) txt.scrollLeft = c.offsetLeft - 30;
+  else if (c.offsetLeft > txt.scrollLeft + txt.clientWidth - 10) txt.scrollLeft = c.offsetLeft - txt.clientWidth + 30;
+  if (!src) { cost.textContent = ''; cost.className = 'cost'; }
+  else if (S.parsed.ok) { cost.textContent = t('play.pieces', { n: S.parsed.cost }); cost.className = 'cost'; }
+  else { cost.textContent = t('err.' + S.parsed.error); cost.className = 'cost err'; }
+  $('pad').querySelector('.go').disabled = !(S.parsed && S.parsed.ok);
+  $('tries').textContent = t('play.level', { n: S.level.id }) + (S.tries ? ' · ' + t('play.tries', { n: S.tries }) : '');
+  renderGoals();
+  draw();
+}
+
+// İfadeye dokununca imleç oraya gider (parçanın sağ yarısına dokunursan arkasına)
+$('exprTxt').addEventListener('pointerdown', e => {
+  if (S.anim) return;
+  const pc = e.target.closest('.pc');
+  if (pc) {
+    const r = pc.getBoundingClientRect();
+    S.cursor = +pc.dataset.i + (e.clientX > r.left + r.width / 2 ? 1 : 0);
+  } else {
+    const first = $('exprTxt').querySelector('.pc');
+    S.cursor = first && e.clientX < first.getBoundingClientRect().left ? 0 : S.pieces.length;
+  }
+  updateExpr();
+});
+
+// Çipler o anki (ya da son) denemeyi gösterir; en iyi rekor başlıktaki yıldızlarda.
+function renderGoals() {
+  const L = S.level, nGems = (L.gems || []).length;
+  const sim = S.last, A = S.anim;
+  const got = A ? A.gotNow : sim ? sim.gems.length : 0;
+  const won = !A && sim && sim.result === 'win';
+  const allGems = got === nGems;
+  const goals = L.shape ? [
+    [t('goal.shape'), won],
+    [t('goal.short', { n: Engine.limitOf(L) }), won && S.lastCost <= Engine.limitOf(L)],
+  ] : [
+    [t('goal.target'), won],
+    [nGems ? t('goal.gems', { a: got, b: nGems }) : t('goal.nogems'), nGems ? allGems && (won || !!A) : won],
+    [t('goal.short', { n: Engine.limitOf(L) }), won && sim.allGems && S.lastCost <= Engine.limitOf(L)],
+  ];
+  const best = progress.stars[L.id] || 0;
+  $('bestStars').innerHTML = best ? '★'.repeat(best) + `<i>${'★'.repeat(3 - best)}</i>` : '';
+  $('goals').innerHTML = goals.map(([txt, on]) => `<div class="goal ${on ? 'on' : ''}"><b>★</b>${txt}</div>`).join('');
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg; el.style.opacity = 1;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.opacity = 0; }, 1800);
+}
+
+/* ===================== FIRLATMA VE ANİMASYON ===================== */
+function launch() {
+  if (!S.parsed || !S.parsed.ok || S.anim) return;
+  const sim = Engine.simulate(S.level, S.parsed.fn);
+  // Yol boyunca birikimli uzunluk: karakter sabit hızla ilerlesin
+  const cum = [0];
+  for (let i = 1; i < sim.path.length; i++) {
+    const [ax, ay] = sim.path[i - 1], [bx, by] = sim.path[i];
+    cum.push(cum[i - 1] + Math.hypot(bx - ax, by - ay));
+  }
+  const total = cum[cum.length - 1];
+  const dur = Math.max(900, Math.min(3200, total / 9 * 1000));
+  S.tries++;
+  S.last = null;
+  S.anim = { sim, cum, total, dur, t0: performance.now(), idx: 0, gotNow: 0, cost: S.parsed.cost };
+  S.lastCost = S.parsed.cost;
+  $('pad').classList.add('busy'); $('fnPad').classList.add('busy');
+  requestAnimationFrame(tick);
+}
+
+function tick() {
+  const now = performance.now();
+  const A = S.anim;
+  if (!A) return;
+  const k = Math.min(1, (now - A.t0) / A.dur);
+  const d = A.total * k;
+  while (A.idx < A.cum.length - 1 && A.cum[A.idx + 1] <= d) A.idx++;
+  const gotNow = A.sim.gems.filter(g => g.at <= A.idx).length;
+  if (gotNow !== A.gotNow) { A.gotNow = gotNow; renderGoals(); }
+  draw();
+  if (k < 1) return requestAnimationFrame(tick);
+  finish(A);
+}
+
+function finish(A) {
+  S.anim = null;
+  S.last = A.sim;
+  S.ghosts.push(A.sim.path);
+  if (S.ghosts.length > 4) S.ghosts.shift();
+  $('pad').classList.remove('busy'); $('fnPad').classList.remove('busy');
+  const L = S.level;
+  const stars = Engine.stars(L, A.sim, A.cost);
+  renderGoals();
+  draw();
+  if (A.sim.result !== 'win') { toast(t('res.' + A.sim.result)); updateExpr(); return; }
+  if (stars > (progress.stars[L.id] || 0)) progress.stars[L.id] = stars;
+  if (!progress.best[L.id] || A.cost < progress.best[L.id]) progress.best[L.id] = A.cost;
+  saveProgress();
+  renderGoals();
+  setTimeout(() => showWin(stars, A.cost), 250);
+}
+
+function showWin(stars, cost) {
+  const L = S.level;
+  $('winCost').textContent = t('win.cost', { n: cost });
+  const need = !A_allGems() ? t('win.needGems') : stars < 3 ? t('win.need', { n: Engine.limitOf(L) }) : '';
+  $('winNeed').textContent = need;
+  const spans = $('winStars').children;
+  [...spans].forEach(s => s.classList.remove('on'));
+  $('winModal').classList.remove('hidden');
+  [...spans].forEach((s, i) => { if (i < stars) setTimeout(() => s.classList.add('on'), 200 + i * 220); });
+  const idx = LEVELS.indexOf(L);
+  $('nextBtn').classList.toggle('hidden', idx === LEVELS.length - 1);
+}
+const A_allGems = () => S.last && S.last.allGems;
+
+$('againBtn').onclick = () => { $('winModal').classList.add('hidden'); updateExpr(); };
+$('nextBtn').onclick = () => {
+  $('winModal').classList.add('hidden');
+  const i = LEVELS.indexOf(S.level);
+  if (LEVELS[i + 1]) openLevel(LEVELS[i + 1]); else showScreen('levels');
+};
+$('backBtn').onclick = () => { S.anim = null; $('pad').classList.remove('busy'); $('fnPad').classList.remove('busy'); showScreen('levels'); };
+
+/* ===================== ÇİZİM VE KAMERA ===================== */
+// Harita matematik koordinatlarında; kamera haritanın bir bölümünü gösterir.
+// cam.cx, cam.cy: ekranın ortasındaki nokta · cam.ppu: bir birimin piksel boyu
+const cv = $('cv'), ctx = cv.getContext('2d');
+const cam = { cx: 12, cy: 0, ppu: 12, w: 0, h: 0 };
+const VIEW_UNITS = 30;        // ilk görünüm: kısa kenarda 30 birim
+let C = {};
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ['board', 'grid', 'grid-strong', 'axis', 'tick', 'outside', 'wall', 'wall-ink', 'gem', 'gem-ink', 'target', 'target-ink', 'char', 'path', 'ghost', 'danger', 'bg', 'label', 'label-ink'])
+    C[k] = cs.getPropertyValue('--' + k).trim();
+  // Duvarlar dünyanın renginde (gök mavisi elmaslarla karışmasın diye 1. ve 5. dünya lavanta/gök yer değiştirir)
+  if (S.level) { const w = S.level.world; C.wall = cs.getPropertyValue('--p' + (w === 1 ? 5 : w === 5 ? 2 : w)).trim(); }
+  // (7. dünyada şerit limon renginde)
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); draw(); });
+
+const X = x => cam.w / 2 + (x - cam.cx) * cam.ppu;
+const Y = y => cam.h / 2 - (y - cam.cy) * cam.ppu;
+const toWorld = (px, py) => [cam.cx + (px - cam.w / 2) / cam.ppu, cam.cy - (py - cam.h / 2) / cam.ppu];
+
+function resize() {
+  const r = $('boardWrap').getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const first = !cam.w;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  cam.w = r.width; cam.h = r.height;
+  if (first || S.camAuto) resetCamera(); else draw();
+}
+new ResizeObserver(resize).observe($('boardWrap'));
+
+// İlk görünüm: kısa kenarda 30 birim, sol kenar x = −3; içerik sığmıyorsa uzaklaş.
+function resetCamera() {
+  if (!S.level || !cam.w) return;
+  const L = S.level, pts = [[0, 0], ...(L.target ? [[L.target.x, L.target.y]] : []), ...(L.gems || []), ...(L.marks || [])];
+  if (L.shape) pts.push([L.shape.from, L.shape.fn(L.shape.from)], [L.shape.to, L.shape.fn(L.shape.to)]);
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
+  let ppu = Math.min(cam.w, cam.h) / VIEW_UNITS;
+  ppu = Math.min(ppu, cam.w / (maxx - Math.min(minx, 0) + 6), cam.h / (maxy - miny + 6));
+  cam.ppu = ppu;
+  const halfW = cam.w / 2 / ppu;
+  cam.cx = Math.min(minx, 0) - 3 + halfW;
+  cam.cy = (miny + maxy) / 2;
+  S.camAuto = true;
+  draw();
+}
+function zoomAt(px, py, k) {
+  const minPpu = Math.min(cam.w, cam.h) / 90, maxPpu = Math.min(cam.w, cam.h) / 5;
+  const [wx, wy] = toWorld(px, py);
+  cam.ppu = Math.max(minPpu, Math.min(maxPpu, cam.ppu * k));
+  cam.cx = wx - (px - cam.w / 2) / cam.ppu;
+  cam.cy = wy + (py - cam.h / 2) / cam.ppu;
+  S.camAuto = false;
+  draw();
+}
+
+// Dokunma: bir parmak kaydırır, iki parmak yakınlaştırır; çift dokunuş sıfırlar. Bilgisayarda tekerlek.
+const pointers = new Map();
+let pinch = null, lastTap = 0;
+cv.addEventListener('pointerdown', e => {
+  cv.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, [e.offsetX, e.offsetY]);
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), ppu: cam.ppu };
+  } else if (pointers.size === 1) {
+    const now = performance.now();
+    if (now - lastTap < 300) resetCamera();
+    lastTap = now;
+  }
+});
+cv.addEventListener('pointermove', e => {
+  if (!pointers.has(e.pointerId)) return;
+  const prev = pointers.get(e.pointerId), cur = [e.offsetX, e.offsetY];
+  pointers.set(e.pointerId, cur);
+  if (pointers.size === 1) {
+    cam.cx -= (cur[0] - prev[0]) / cam.ppu;
+    cam.cy += (cur[1] - prev[1]) / cam.ppu;
+    S.camAuto = false;
+    draw();
+  } else if (pointers.size === 2 && pinch) {
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+    zoomAt(mx, my, (pinch.ppu * d / pinch.d) / cam.ppu);
+  }
+});
+const endPointer = e => { pointers.delete(e.pointerId); if (pointers.size < 2) pinch = null; };
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+cv.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.offsetX, e.offsetY, Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+$('zoomIn').onclick = () => zoomAt(cam.w / 2, cam.h / 2, 1.4);
+$('zoomOut').onclick = () => zoomAt(cam.w / 2, cam.h / 2, 1 / 1.4);
+$('zoomReset').onclick = () => resetCamera();
+// Hayalet grafik: yazdığın fonksiyonun tamamı soluk çizilir (x < 0 dahil). Aç/kapa, tercih saklanır.
+S.ghostOn = store.get('hv-ghost', true);
+const syncGhostBtn = () => $('ghostBtn').classList.toggle('on', S.ghostOn);
+$('ghostBtn').onclick = () => { S.ghostOn = !S.ghostOn; store.set('hv-ghost', S.ghostOn); syncGhostBtn(); draw(); };
+syncGhostBtn();
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function strokePath(pts, n, color, width, dash) {
+  if (n < 2) return;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (dash) ctx.setLineDash(dash);
+  ctx.beginPath();
+  ctx.moveTo(X(pts[0][0]), Y(pts[0][1]));
+  for (let i = 1; i < n; i++) ctx.lineTo(X(pts[i][0]), Y(pts[i][1]));
+  ctx.stroke();
+  ctx.restore();
+}
+const fmtNum = v => { const r = Math.round(v * 100) / 100; return (Object.is(r, -0) ? 0 : r).toString().replace('-', '−'); };
+
+function drawGrid(B) {
+  const [x0w, y1w] = toWorld(0, 0), [x1w, y0w] = toWorld(cam.w, cam.h);
+  // Harita dışı
+  ctx.fillStyle = C.outside;
+  if (X(B.xmin) > 0) ctx.fillRect(0, 0, X(B.xmin), cam.h);
+  if (X(B.xmax) < cam.w) ctx.fillRect(X(B.xmax), 0, cam.w - X(B.xmax), cam.h);
+  if (Y(B.ymax) > 0) ctx.fillRect(0, 0, cam.w, Y(B.ymax));
+  if (Y(B.ymin) < cam.h) ctx.fillRect(0, Y(B.ymin), cam.w, cam.h - Y(B.ymin));
+  // Izgara: birim çizgiler (yeterince büyükse) ve her 5'te belirgin çizgi
+  const lines = (step, color) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.beginPath();
+    for (let x = Math.ceil(x0w / step) * step; x <= x1w; x += step) { ctx.moveTo(Math.round(X(x)) + 0.5, 0); ctx.lineTo(Math.round(X(x)) + 0.5, cam.h); }
+    for (let y = Math.ceil(y0w / step) * step; y <= y1w; y += step) { ctx.moveTo(0, Math.round(Y(y)) + 0.5); ctx.lineTo(cam.w, Math.round(Y(y)) + 0.5); }
+    ctx.stroke();
+  };
+  if (cam.ppu >= 6) lines(1, C.grid);
+  lines(cam.ppu >= 6 ? 5 : 10, C['grid-strong']);
+  // Eksenler
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 1.5; ctx.beginPath();
+  ctx.moveTo(0, Y(0)); ctx.lineTo(cam.w, Y(0)); ctx.moveTo(X(0), 0); ctx.lineTo(X(0), cam.h); ctx.stroke();
+  // Eksen sayıları (eksen ekran dışındaysa kenara yapışır)
+  const step = [1, 2, 5, 10, 20, 50].find(s => s * cam.ppu >= 34) || 50;
+  ctx.font = `600 10px ui-monospace, "SF Mono", Menlo, monospace`;
+  ctx.fillStyle = C.tick;
+  const ay = Math.max(2, Math.min(cam.h - 14, Y(0) + 3));
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let x = Math.ceil(x0w / step) * step; x <= x1w; x += step) if (x !== 0) ctx.fillText(fmtNum(x), X(x), ay);
+  const ax = Math.max(14, Math.min(cam.w - 3, X(0) - 4));
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let y = Math.ceil(y0w / step) * step; y <= y1w; y += step) if (y !== 0) ctx.fillText(fmtNum(y), ax, Y(y));
+}
+
+function drawChar(x, y, alpha) {
+  const r = Math.max(6, Engine.R * cam.ppu * 1.15);
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.beginPath(); ctx.arc(X(x), Y(y), r, 0, Math.PI * 2); ctx.fillStyle = C.char; ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = C['wall-ink']; ctx.stroke();
+  ctx.fillStyle = C.board;
+  ctx.beginPath(); ctx.arc(X(x) + r * 0.25, Y(y) - r * 0.15, r * 0.2, 0, Math.PI * 2); ctx.arc(X(x) + r * 0.62, Y(y) - r * 0.15, r * 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function draw() {
+  if (!S.level || !cam.w) return;
+  const L = S.level, B = Engine.boardOf(L), s = cam.ppu;
+  ctx.clearRect(0, 0, cam.w, cam.h);
+  ctx.fillStyle = C.board; ctx.fillRect(0, 0, cam.w, cam.h);
+  drawGrid(B);
+
+  // Engeller
+  for (const w of L.walls || []) {
+    roundRect(X(w.x), Y(w.y + w.h), w.w * s, w.h * s, Math.min(0.3 * s, w.w * s / 2, w.h * s / 2));
+    ctx.fillStyle = C.wall; ctx.fill(); ctx.strokeStyle = C['wall-ink']; ctx.lineWidth = 2; ctx.stroke();
+  }
+  for (const r of L.rocks || []) {
+    ctx.beginPath(); ctx.arc(X(r.x), Y(r.y), r.r * s, 0, Math.PI * 2);
+    ctx.fillStyle = C.wall; ctx.fill(); ctx.strokeStyle = C['wall-ink']; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  // Hedef (ekranda en az birkaç piksel)
+  const T = L.target, tr = Math.max(7, Engine.TARGET_R * s);
+  if (T) {
+    ctx.beginPath(); ctx.arc(X(T.x), Y(T.y), tr, 0, Math.PI * 2); ctx.fillStyle = C.target; ctx.fill();
+    ctx.beginPath(); ctx.arc(X(T.x), Y(T.y), tr * 0.55, 0, Math.PI * 2); ctx.strokeStyle = C['target-ink']; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(T.x), Y(T.y), tr, 0, Math.PI * 2); ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(T.x), Y(T.y), tr * 0.18, 0, Math.PI * 2); ctx.fillStyle = C['target-ink']; ctx.fill();
+  }
+  // Ters bulmaca: izlenecek eğri kalın bir şerit (genişliği izin verilen sapma kadar)
+  if (L.shape) {
+    // Eğrinin görünen kısmının tamamı soluk; izlenmesi gereken aralık [from, to] koyu şerit
+    const [xa] = toWorld(0, 0), [xb] = toWorld(cam.w, 0);
+    const all = [], part = [];
+    for (let x = xa; x <= xb; x += 1.5 / cam.ppu) {
+      const y = L.shape.fn(x);
+      if (Number.isFinite(y)) all.push([x, y]);
+    }
+    for (let x = L.shape.from; x <= L.shape.to + 1e-9; x += 0.04) part.push([x, L.shape.fn(x)]);
+    const bw = Math.max(9, 2 * Engine.SHAPE_BAND * s + 4);
+    ctx.save(); ctx.globalAlpha = 0.3; strokePath(all, all.length, C.wall, bw); ctx.restore();
+    strokePath(all, all.length, C['wall-ink'], 1.2, [3, 6]);
+    ctx.save(); ctx.globalAlpha = 0.8; strokePath(part, part.length, C.wall, bw); ctx.restore();
+    strokePath(part, part.length, C['wall-ink'], 1.5, [3, 5]);
+  }
+
+  // Hayalet grafik: fonksiyonun görünen aralıktaki tamamı (kopuk yerlerde parça parça)
+  if (S.ghostOn && S.parsed && S.parsed.ok && !S.anim) {
+    const f = S.parsed.fn, [xa] = toWorld(0, 0), [xb] = toWorld(cam.w, 0), dx = 2 / cam.ppu;
+    ctx.save(); ctx.strokeStyle = C.path; ctx.globalAlpha = 0.4; ctx.lineWidth = 2; ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    let pen = false, py = 0;
+    for (let x = xa; x <= xb; x += dx) {
+      const y = f(x), sy = Y(y);
+      if (!Number.isFinite(y) || Math.abs(sy) > cam.h * 4 || (pen && Math.abs(sy - py) > cam.h)) { pen = false; continue; }
+      if (pen) ctx.lineTo(X(x), sy); else ctx.moveTo(X(x), sy);
+      pen = true; py = sy;
+    }
+    ctx.stroke(); ctx.restore();
+  }
+
+  // Önceki denemeler
+  for (const g of S.ghosts) strokePath(g, g.length, C.ghost, 2);
+
+  // Elmaslar (toplananlar soluk)
+  const A = S.anim;
+  const taken = new Set((A ? A.sim.gems.filter(g => g.at <= A.idx) : S.last ? S.last.gems : []).map(g => g.index));
+  const gr = Math.max(6, Engine.GEM_R * s);
+  (L.gems || []).forEach(([gx, gy], i) => {
+    ctx.save(); ctx.translate(X(gx), Y(gy)); ctx.rotate(Math.PI / 4);
+    roundRect(-gr * 0.75, -gr * 0.75, gr * 1.5, gr * 1.5, gr * 0.25);
+    ctx.globalAlpha = taken.has(i) ? 0.25 : 1;
+    ctx.fillStyle = C.gem; ctx.fill(); ctx.strokeStyle = C['gem-ink']; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+  });
+
+  // Yol: uçuşta çizilen kısım, bitince tamamı, yazarken önizleme (x = 0'dan itibaren 3 birim)
+  let start = [0, 0];
+  if (S.parsed && S.parsed.ok) {
+    const y = S.parsed.fn(0);
+    if (Number.isFinite(y) && y <= B.ymax && y >= B.ymin) start = [0, y];
+  }
+  let cx = start[0], cy = start[1];
+  if (A) {
+    const p = A.sim.path;
+    strokePath(p, A.idx + 1, C.path, 4);
+    [cx, cy] = p[A.idx];
+  } else if (S.last) {
+    strokePath(S.last.path, S.last.path.length, C.path, 4);
+  } else if (S.parsed && S.parsed.ok) {
+    const f = S.parsed.fn, lim = L.preview ?? 3, pts = [];
+    for (let x = 0; x <= lim + 1e-9; x += 0.05) {
+      const y = f(x);
+      if (!Number.isFinite(y) || y > B.ymax + 1 || y < B.ymin - 1) break;
+      pts.push([x, y]);
+    }
+    strokePath(pts, pts.length, C.path, 3, [2, 6]);
+  }
+
+  // Orijin işareti
+  ctx.beginPath(); ctx.arc(X(0), Y(0), 4, 0, Math.PI * 2); ctx.strokeStyle = C.axis; ctx.lineWidth = 2; ctx.stroke();
+
+  // Koordinat etiketleri
+  const label = (wx, wy, alpha, dy) => {
+    const txt = `(${fmtNum(wx)}, ${fmtNum(wy)})`;
+    const fs = 11;
+    ctx.save(); ctx.globalAlpha = alpha;
+    ctx.font = `700 ${fs}px ui-monospace, "SF Mono", Menlo, monospace`;
+    const w = ctx.measureText(txt).width + 8, h = fs + 5;
+    let lx = X(wx) - w / 2, ly = Y(wy) - dy - h;
+    if (ly < 2) ly = Y(wy) + dy;
+    roundRect(lx, ly, w, h, 5); ctx.fillStyle = C.label; ctx.fill(); ctx.strokeStyle = C['wall-ink']; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = C['label-ink']; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillText(txt, lx + w / 2, ly + h / 2 + 0.5);
+    ctx.restore();
+  };
+  if (!A) {
+    (L.gems || []).forEach(([gx, gy], i) => label(gx, gy, taken.has(i) ? 0.35 : 1, gr + 3));
+    if (T) label(T.x, T.y, 1, tr + 3);
+    for (const [mx, my] of L.marks || []) {
+      ctx.beginPath(); ctx.arc(X(mx), Y(my), 4.5, 0, Math.PI * 2); ctx.fillStyle = C['wall-ink']; ctx.fill();
+      label(mx, my, 1, 8);
+    }
+  }
+
+  // Son denemenin bitişi: çarpma işareti
+  if (!A && S.last && S.last.result !== 'win' && S.last.path.length) {
+    const [ex, ey] = S.last.path[S.last.path.length - 1];
+    const r = 7;
+    ctx.save(); ctx.strokeStyle = C.danger; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(X(ex) - r, Y(ey) - r); ctx.lineTo(X(ex) + r, Y(ey) + r); ctx.moveTo(X(ex) + r, Y(ey) - r); ctx.lineTo(X(ex) - r, Y(ey) + r); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Karakter: yazarken yolun başladığı yerde (x = 0, y = f(0)) bekler
+  if (A) drawChar(cx, cy, 1);
+  else drawChar(start[0], start[1], S.last ? 0.5 : 1);
+}
+
+/* ===================== AÇILIŞ ===================== */
+readColors();
+applyStatic();
+renderLevels();
+// Geliştirme: ?level=2-5 doğrudan o bölümü açar, ?dev bütün bölüm ve tuşları açar
+if (DEV.level) { const L = LEVELS.find(L => L.id === DEV.level); if (L) openLevel(L); }
+// ?try=<yol> o yolu yazıp fırlatır (ekran görüntüsü ve hızlı deneme için)
+if (DEV.try && S.level) { S.pieces = [DEV.try]; S.cursor = 1; updateExpr(); setTimeout(launch, 300); }
+</script>
+</body>
+</html>
