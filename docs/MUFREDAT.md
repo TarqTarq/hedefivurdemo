@@ -34,77 +34,88 @@ Sütunlar: **tür** (düğüm / kenar / sentez) · **aha** (oyuncunun fark etmes
 
 ---
 
+## Gerekli iki küçük motor değişikliği (2026-11-16 revizyonu)
+
+1. **Başlangıç x'i:** bazı bölümlerde karakter solda başlar (ör. x = −6). Böylece `|x|`'in V'si, `x²`'nin tamamı, dalganın
+   iki yanı görünür (x ≥ 0'da `|x|` ile `x` aynıdır, köşe görünmez). Orijin ve koordinatlar değişmez. Tabloda "baş." sütunu.
+2. **π'li etiketler ve yakın açılış:** `sin(x)`'in tepeleri π/2'de; etiket "(π/2, 1)" yazmalı. Küçük dalgalar (genliği 1)
+   30 birimlik görünümde minicik kalır: bölüm içeriğine göre yakın açılmalı.
+
 ## A. Doğrular
 
-| # | Tür | Aha | Cevap | Gördüğü | Not |
-|---|---|---|---|---|---|
-| A1 | düğüm | Yazdığım şey yükseklik; sabit sayı = düz yol | `0` | (5,0) (10,0) (15,0) → (20,0) | |
-| A2 | düğüm | `x` her adımda 1 yükselir | `x` | (4,4) (8,8) → (12,12) | |
-| A3 | düğüm | Öndeki sayı dikliği belirler | `3x` | (1,3) (2,6) → (4,12) | |
-| A4 | düğüm | Bölmek yatıştırır | `x/3` | (3,1) (9,3) (15,5) → (21,7) | |
-| A5 | düğüm | Eksi ters çevirir | `−2x` | (2,−4) (4,−8) → (6,−12) | |
-| A6 | düğüm | Sondaki sayı başlangıç yüksekliği | `x+4` | (0,4) (5,9) → (10,14) | |
-| A7 | kenar | Başlangıç verilmeden: iki elmastan eğim, geriye uzat | `x/2−6` | (4,−4) (8,−2) → (20,4) | |
-| A8 | sentez | Eğim + başlangıç + ters, hepsi kafadan | `−2x/3+8` | (3,6) (9,2) → (21,−6) | |
+| # | Tür | Aha | Cevap | Gördüğü |
+|---|---|---|---|---|
+| A1 | düğüm | Yazdığım şey yükseklik; `0` = x ekseni | `0` | (5,0) (10,0) (15,0) → (20,0) |
+| A2 | düğüm | **Sabit sayı = o yükseklikte düz yol** | `3` | (4,3) (8,3) → (12,3) |
+| A3 | düğüm | `x` her adımda 1 yükselir | `x` | (4,4) (8,8) → (12,12) |
+| A4 | düğüm | Öndeki sayı diklik | `3x` | (1,3) (2,6) → (4,12) |
+| A5 | düğüm | Bölmek yatıştırır | `x/3` | (3,1) (9,3) (15,5) → (21,7) |
+| A6 | düğüm | Eksi ters çevirir | `−2x` | (2,−4) (4,−8) → (6,−12) |
+| A7 | düğüm | **Ters ve yatık** | `−x/3` | (3,−1) (9,−3) → (15,−5) |
+| A8 | düğüm | Sondaki sayı başlangıç | `x+4` | (0,4) (5,9) → (10,14) |
+| A9 | kenar | Başlangıç yok: eğimi bul, geriye uzat | `x/2−6` | (4,−4) (8,−2) → (20,4) |
+| A10 | sentez | Hepsi kafadan | `−2x/3+8` | (3,6) (9,2) → (21,−6) |
+| *öneri* | | Kesirli eğim: 3 adımda 2 (A10'a hazırlık) | `2x/3` | (3,2) (6,4) → (12,8) |
 
 ## B. Kavisler (+ doğruyla ilişkisi)
 
-| # | Tür | Aha | Cevap | Gördüğü | Not |
+| # | Tür | Aha | Cevap | Baş. | Gördüğü |
 |---|---|---|---|---|---|
-| B1 | düğüm | 1, 4, 9: kare sayılar | `x²` | (1,1) (2,4) → (3,9) | `x²` tuşu |
-| B2 | düğüm | Eksi kavisi ters çevirir | `−x²` | (1,−1) (2,−4) → (3,−9) | |
-| B3 | düğüm | İçeride eksi sağa kaydırır | `(x−3)²` | (0,9) (3,0) → (6,9) | |
-| B4 | düğüm | İçeride artı sola kaydırır | `(x+2)²` | (0,4) → (1,9) | |
-| B5 | düğüm | Sondaki sayı yukarı | `x²+5` | (0,5) (1,6) (2,9) → (3,14) | |
-| B6 | düğüm | Eksi sayı aşağı | `x²−8` | (0,−8) (2,−4) → (4,8) | |
-| B7 | düğüm | Öndeki sayı daraltır | `3x²` | (1,3) → (2,12) | |
-| B8 | düğüm | Bölmek genişletir | `x²/4` | (2,1) (4,4) → (6,9) | |
-| B9 | düğüm | Simetri: aynı yükseklikteki iki elmas, dip ortada | `(x−4)²−6` | (2,−2) (6,−2) → (7,3) | |
-| B10 | **kenar** | **İki doğrunun çarpımı bir kavis**; eksene değdiği yerler doğruların sıfırları | `(x−2)(x−6)` | (2,0) (6,0) → (8,12) | yeni ders: kökler |
-| B11 | **kenar** | Biri orijinden geçen doğru: `x(x−4)` | `x(x−4)` | (2,−4) (4,0) → (6,12) | |
-| B12 | **kenar** | **`x²` tuşu yasak**: kavisi iki doğrunun çarpımıyla yaz | `(x−3)(x−3)` | (1,4) (5,4) → (6,9) | `ban: sq` |
-| B13 | sentez | Tepe noktası duvarların arasından geçmeli | `−(x−4)²+10` | (2,6) (6,6) → (8,−6) | duvar (şimdiki 2-11) |
+| B1 | düğüm | 1, 4, 9: kareler; iki yan aynı | `x²` | **−3** | (−2,4) (0,0) (2,4) → (3,9) |
+| B2 | düğüm | Eksi ters çevirir | `−x²` | | (1,−1) (2,−4) → (3,−9) |
+| B3 | düğüm | İçeride eksi sağa | `(x−3)²` | | (0,9) (3,0) → (6,9) |
+| B4 | düğüm | İçeride artı sola | `(x+2)²` | | (0,4) → (1,9) |
+| B5 | düğüm | Sonda artı yukarı | `x²+5` | | (0,5) (1,6) (2,9) → (3,14) |
+| B6 | düğüm | Sonda eksi aşağı | `x²−8` | | (0,−8) (2,−4) → (4,8) |
+| B7 | düğüm | Çarpan daraltır | `3x²` | | (1,3) → (2,12) |
+| B8 | düğüm | Bölmek genişletir | `x²/4` | | (2,1) (4,4) → (6,9) |
+| B9 | düğüm | Simetri: dip ortada | `(x−4)²−6` | | (2,−2) (6,−2) → (7,3) |
+| B10 | **kenar** | **İki doğrunun çarpımı kavis**; köklerde eksene değer | `(x−2)(x−6)` | | (2,0) (6,0) → (8,12) |
+| B11 | **kenar** | Biri orijinden geçen doğru | `x(x−4)` | | (2,−4) (4,0) → (6,12) |
+| B12 | sentez | Tepe duvarların arasından | `−(x−4)²+10` | | (2,6) (6,6) → (8,−6) + duvar |
+| *öneri* | kenar | Aşağı açılan kökler: tepe köklerin ortasında | `−(x−1)(x−7)` | | (1,0) (4,9) (7,0) → (8,−7) |
 
-## C. Köşeler (+ doğruyla, + kavisle ilişkisi)
+(Eski B12, "x² tuşu yasak", çıkarıldı.)
 
-| # | Tür | Aha | Cevap | Gördüğü | Not |
+## C. Köşeler: önce `|x|`, sonra dönüşümler, sonra ilişkiler
+
+| # | Tür | Aha | Cevap | Baş. | Gördüğü |
 |---|---|---|---|---|---|
-| C1 | düğüm | `|x|` sivri köşe; kurallar kavisle aynı | `|x−4|` | (0,4) (4,0) → (10,6) | `|x|` tuşu |
-| C2 | düğüm | Simetri: köşe iki elmasın ortasında, ters | `−|x−5|+5` | (3,3) (7,3) → (10,0) | |
-| C3 | düğüm | Öndeki sayı kolları dikleştirir | `2|x−3|−6` | (1,−2) (5,−2) → (8,4) | |
-| C4 | **kenar** | **`|doğru|`**: doğrunun eksenin altındaki kısmı yukarı katlanır | `|2x−6|` | (1,4) (5,4) → (7,8) | |
-| C5 | **kenar** | **Köşe + doğru**: bir kol düzleşir; yol önce düz, sonra yokuş | `|x−4|+x` | (1,4) (3,4) (6,8) → (8,12) | |
-| C6 | **kenar** | **`|kavis|`**: kavisin altta kalan kısmı katlanır, ortada tümsek | `|x²−4|` | (0,4) (1,3) (2,0) (3,5) → (4,12) | yeni ders: katlama |
-| C7 | **kenar** | Aynı katlama, daha gizli (sahibin örneği) | `|x²−2|` | (0,2) (1,1) (2,2) (3,7) → (4,14) | |
-| C8 | **kenar** | Katlanmış kökler: "M" şekli | `|(x−2)(x−6)|` | (0,12) (2,0) (4,4) (6,0) → (8,12) | |
-| C9 | sentez | İki köşe: düz, yokuş, düz | `|x−4|−|x−12|` | (2,−8) (8,0) (14,8) → (18,8) | |
+| C1 | düğüm | **`|x|`**: negatifleri pozitif yapar, V şekli | `|x|` | **−6** | (−4,4) (0,0) (3,3) → (6,6) |
+| C2 | düğüm | **Ters çevirme**: Λ şekli | `−|x|` | **−6** | (−4,−4) (0,0) (3,−3) → (6,−6) |
+| C3 | düğüm | **Dikey öteleme** | `|x|+3` | **−5** | (−3,6) (0,3) (2,5) → (5,8) |
+| C4 | düğüm | **Yatay öteleme**: köşe 4'te | `|x−4|` | | (0,4) (4,0) → (10,6) |
+| C5 | kenar | Ters + iki öteleme; simetri: köşe ortada | `−|x−5|+5` | | (3,3) (7,3) → (10,0) |
+| C6 | düğüm | Çarpan kolları dikleştirir | `2|x−3|−6` | | (1,−2) (5,−2) → (8,4) |
+| C7 | **kenar** | **`|doğru|`**: doğrunun altta kalanı katlanır | `|2x−6|` | | (1,4) (5,4) → (7,8) |
+| C8 | **kenar** | **Köşe + doğru**: bir kol düzleşir | `|x−4|+x` | | (1,4) (3,4) (6,8) → (8,12) |
+| C9 | **kenar** | **`|kavis|`**: W şekli | `|x²−4|` | **−4** | (−3,5) (−2,0) (0,4) (2,0) → (3,5) |
+| C10 | **kenar** | Aynı katlama, daha gizli | `|x²−2|` | **−3** | (−2,2) (−1,1) (0,2) (1,1) (2,2) → (3,7) |
+| C11 | **kenar** | Katlanmış kökler: M şekli | `|(x−2)(x−6)|` | | (0,12) (2,0) (4,4) (6,0) → (8,12) |
+| C12 | sentez | İki köşe: düz, yokuş, düz | `|x−4|−|x−12|` | | (2,−8) (8,0) (14,8) → (18,8) |
 
-## D. Dalgalar (+ doğruyla, + köşeyle, + kavisle ilişkisi)
+## D. Dalgalar: sinüs, π ile tam sayılara oturtma, dönüşümler, periyot, ilişkiler
 
-| # | Tür | Aha | Cevap | Gördüğü | Not |
-|---|---|---|---|---|---|
-| D1 | düğüm | Dalga 4 adımda bir döner | `sin(πx/2)` | (1,1) (3,−1) (5,1) → (7,−1) | `sin`, `π` tuşları |
-| D2 | düğüm | Öndeki sayı dalganın boyu | `3sin(πx/2)` | (1,3) (3,−3) (5,3) (7,−3) → (9,3) | |
-| D3 | düğüm | Eksi: önce aşağı | `−3sin(πx/2)` | (1,−3) (3,3) (5,−3) → (7,3) | |
-| D4 | düğüm | İçerideki sayı hız | `3sin(πx/4)` | (2,3) (6,−3) (10,3) → (14,−3) | |
-| D5 | düğüm | Sondaki sayı: dalganın ortası | `3sin(πx/4)+6` | (0,6) (2,9) (6,3) → (10,9) | |
-| D6 | **kenar** | **Doğru + dalga**: merdiven | `x+sin(πx/2)` | (1,2) (3,2) (5,6) (7,6) → (9,10) | |
-| D7 | **kenar** | **`|dalga|`**: alt yarısı katlanır, zıplayan top | `3|sin(πx/4)|` | (2,3) (4,0) (6,3) (8,0) → (10,3) | |
-| D8 | **kenar** | **Doğru × dalga**: boyu büyüyen dalga | `x·sin(πx/2)` | (1,1) (3,−3) (5,5) (7,−7) (9,9) → (11,−11) | |
-| D9 | sentez | Köşe + dalga | `|x−6|+sin(πx/2)` | (3,2) (5,2) (7,0) (9,4) → (12,6) | |
+| # | Tür | Aha | Cevap | Gördüğü |
+|---|---|---|---|---|
+| D1 | düğüm | **Sinüs**: 0'dan 1'e, 0'a, −1'e; tepeler π/2'de | `sin(x)` | (π/2,1) (3π/2,−1) (5π/2,1) → (7π/2,−1) |
+| D2 | düğüm | **π ile çarpınca** dalga her tam sayıda sıfırlanır, tepeler 0.5'lerde | `sin(πx)` | (0.5,1) (1.5,−1) (2.5,1) → (3.5,−1) |
+| D3 | düğüm | Ters çevirme | `−sin(πx)` | (0.5,−1) (1.5,1) (2.5,−1) → (3.5,1) |
+| D4 | düğüm | Dikey öteleme: dalganın ortası | `sin(πx)+2` | (0.5,3) (1.5,1) (2.5,3) → (3.5,1) |
+| D5 | düğüm | Yatay öteleme: dalga yarım adım kayar | `sin(π(x−0.5))` | (0,−1) (1,1) (2,−1) → (3,1) |
+| D6 | düğüm | Çarpan: dalganın boyu | `3sin(πx)` | (0.5,3) (1.5,−3) (2.5,3) → (3.5,−3) |
+| D7 | düğüm | **Periyot**: içeriyi bölünce dalga yavaşlar, bir tur 4 adım | `sin(πx/2)` | (1,1) (3,−1) (5,1) → (7,−1) |
+| D8 | düğüm | Periyot + boy: bir tur 8 adım | `3sin(πx/4)` | (2,3) (6,−3) (10,3) → (14,−3) |
+| D9 | kenar | Ortası, boyu, periyodu: üçü birden | `3sin(πx/4)+6` | (0,6) (2,9) (6,3) → (10,9) |
+| D10 | **kenar** | **Doğru + dalga**: merdiven | `x+sin(πx/2)` | (1,2) (3,2) (5,6) (7,6) → (9,10) |
+| D11 | **kenar** | **`|dalga|`**: zıplayan top | `3|sin(πx/4)|` | (2,3) (4,0) (6,3) (8,0) → (10,3) |
+| D12 | **kenar** | **Doğru × dalga**: büyüyen dalga | `x·sin(πx/2)` | (1,1) (3,−3) (5,5) (7,−7) (9,9) → (11,−11) |
+| D13 | sentez | Köşe + dalga | `|x−6|+sin(πx/2)` | (3,2) (5,2) (7,0) (9,4) → (12,6) |
 
-## E. Sentez (hangi aile? yasak/zorunlu tuş, engeller)
+## E. Sentez (şimdilik yok)
 
-Bütün tuşlar açık; oyuncu hangi aileyi kullanacağına kendisi karar verir.
-
-| # | Tür | Aha | Cevap | Gördüğü | Not |
-|---|---|---|---|---|---|
-| E1 | sentez | Kavis mi köşe mi? (1,1) noktası kavise uyar | `(x−2)²` | (0,4) (1,1) (3,1) → (4,4) | `2|x−2|` geçmez |
-| E2 | sentez | Aynı soru, bu sefer köşe | `2|x−2|` | (0,4) (1,2) (3,2) → (4,4) | `(x−2)²` geçmez |
-| E3 | sentez | **`|x|` kullanmak zorunlu**, yol düz: x ≥ 0'da `|x| = x` | `|x|` | (2,2) (5,5) → (8,8) | `need: abs` |
-| E4 | sentez | Engelli yol: tepe 10 ile 12 arasında kalmalı, birçok doğru cevap | `−(x−5)²+11` (örnek) | (2,2) (8,2) → (10,−14) | duvarlar |
-| E5 | sentez | Katlanmış kavis + simetri | `|x²−6x|` | (1,5) (3,9) (5,5) → (7,7) | |
-| E6+ | sentez | (birlikte eklenecek: engelli dalga tüneli, iki aileyi toplama…) | | | |
+Amacı, ipucu vermeden aileyi seçtirmekti: bütün tuşlar açık, oyuncu elmaslara bakıp "kavis mi köşe mi dalga mı" diye
+karar verir. Sahip şimdilik gerek görmedi (2026-11-16); ilişki bölümleri bu işi zaten kısmen yapıyor. Sonra bakılır.
 
 ## F. Ters bulmaca
 
