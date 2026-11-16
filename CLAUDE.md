@@ -33,8 +33,11 @@ Ad, tema/karakter ve arkadaşla düello modu **sonraya bırakıldı** (2026-11-1
 - Ayrıştırıcı: boşluk ayırıcıdır (`2 3` = 6), `√x` parantezsiz de olur. `1e5` bilimsel gösterim değil, 1·e·5 (e sabiti).
 - Sonuçlar: `win`, `wall`, `out` (y sınırı), `broken`, `miss` (x = 30'a vardı), `off` (ters bulmacada eğriden çıktı), `wiggle`.
 - **Ters bulmaca** (`level.shape = {fn, from, to}`): x ∈ [from, to] boyunca y = g(x) olmalı; `to`'ya varınca kazanır.
-  Kesin: y = g(x) (1e-6); şerit yalnız görsel. Hedef ve elmas yok; `marks` noktalarının koordinatları yazılır (tam sayı). Yıldız: ★ izledin · ★★ (kendiliğinden) · ★★★ parça sınırı.
-- Yıldızlar: ★ hedef · ★★ bütün elmaslar · ★★★ elmaslar + en fazla `limit` parça (verilmezse örnek çözümünki).
+  Kesin: y = g(x) (1e-6); şerit yalnız görsel. Hedef ve elmas yok; `marks` noktalarının koordinatları yazılır (tam sayı). Kazanmak ★★★.
+- **Yıldızlar** (2026-11-16): ★ hedef · ★★ elmasların en az yarısı · ★★★ bütün elmaslar (elmas yoksa kazanmak ★★★).
+  "En kısa yazma" sınırı kaldırıldı; parça sayısı ekranda gösterilmiyor.
+- **Yasak / zorunlu tuşlar:** `level.ban` / `level.need` (sq, pow, abs, sin, cos, sqrt, pi). Yasaklar tuş takımında görünmez;
+  `Engine.checkRules` formülün özelliklerine bakar, bozulursa fırlatılmaz ("Bu bölümde x² kullanılamaz").
 
 ## Tasarım dili (karar 2026-11-15)
 Sahip **The Almanac** bulmaca uygulamasının tasarımını beğendi; ondan **ilham** alındı, kopyalanmadı (ad, logo, ekran düzeni alınmaz).
@@ -46,7 +49,12 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
 
 ## Arayüz
 - Kamera: ilk görünüm kısa kenarda 30 birim, sol kenar x = −3. Sürükle = kaydır, iki parmak/tekerlek = yakınlaştır,
-  çift dokunuş veya ⟲ = sıfırla. Gerçek eksenler ve eksen sayıları çizilir.
+  ⟲ = sıfırla (çift dokunuş kaldırıldı, dokunma artık nokta seçiyor).
+- **Haritaya dokunma** (2026-11-16): en yakın elmas/hedef/işaret ya da ızgara noktası seçilir, koordinatı yazılır;
+  iki nokta seçilince aralarına çizgi ve **orta noktası** çizilir (simetri bulmacaları için, kâğıt kalem yerine). Serbest.
+- **Ayarla** (2026-11-16): formüldeki sayıya basılı tutup sürükleyince sayı değişir, hayalet grafik canlı kayar.
+  Güçlü olduğu için hak ile: bölümde açmak 1 hak, o bölümde serbest; 3 hakla başlanır, ilk kez bitirilen bölüm +1 (en çok 9).
+  `TOOL_RULES.needAd` ile ileride ödüllü reklam. Gerçek eksenler ve eksen sayıları çizilir.
 - Karakter yazarken (0, f(0))'da bekler; önizleme x = 0'dan 3 birim.
 - **Hayalet grafik** (2026-11-15): yazılan fonksiyonun görünen aralıktaki tamamı (x < 0 dahil) soluk kesikli çizilir.
   Haritadaki düğmeyle açılıp kapanır (`hv-ghost`, varsayılan açık). Sahip "koşullu açıp kapatacağız, sonra geliştiririz" dedi:

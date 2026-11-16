@@ -91,6 +91,17 @@ for (const [src, x, want] of [['2 3', 0, 6], ['√x', 4, 2], ['√(x)', 9, 3], [
   console.log(`  bulanık test: 5000 ifade, ${parsedOk} geçerli, en yavaş ${worst} ms`);
 }
 
+// Yıldız kuralı: ★ hedef, ★★ elmasların yarısı, ★★★ hepsi
+{ const L = { target: { x: 4, y: 4 }, gems: [[1, 1], [2, 2], [3, 3], [2, 5]] };
+  for (const [src, want] of [['x', 2], ['x', 2]]) { n++; const st = E.play(L, src).stars; if (st !== want) bad(`yıldız: "${src}" ${st} ≠ ${want}`); }
+  const L2 = { target: { x: 4, y: 4 }, gems: [[1, 1], [2, 5], [3, 6]] };
+  n++; if (E.play(L2, 'x').stars !== 1) bad('yıldız: 3 elmastan 1 alınca ★ olmalı');
+  n++; if (E.play({ target: { x: 4, y: 4 } }, 'x').stars !== 3) bad('yıldız: elmassız bölümde kazanmak ★★★ olmalı'); }
+// Yasak / zorunlu tuşlar
+{ const L = { target: { x: 2, y: 4 }, ban: ['sq'], need: ['abs'] };
+  const cases = [['x^2', 'ban'], ['x*x', 'need'], ['abs(x)*x', null], ['2abs(x)', null]];
+  for (const [src, code] of cases) { n++; const r = E.checkRules(L, E.parse(src)); if ((r && r.code) !== code) bad(`kural: "${src}" ${r && r.code} ≠ ${code}`); } }
+
 // Kesinlik: 1-1'de 0.1 / 0.01 / 0.001 yıldız almamalı (sahip bildirdi)
 { const L1 = LEVELS.find(l => l.id === '1-1');
   for (const w of ['0.1', '0.01', '0.001', '-0.05']) { n++; if (E.play(L1, w).stars > 0) bad(`1-1 "${w}" ile kazanılıyor`); } }
@@ -149,18 +160,19 @@ for (const L of LEVELS) {
   }
   const r = E.play(L, L.solution);
   if (!r.parse.ok) { bad(`${tag} örnek çözüm ayrıştırılamadı`); continue; }
+  if (r.rule) { bad(`${tag} örnek çözüm bölüm kuralını bozuyor (${r.rule.code} ${r.rule.key})`); continue; }
   if (r.sim.result !== 'win') bad(`${tag} örnek çözüm kazanmıyor: ${r.sim.result}`);
   else if (r.stars !== 3) bad(`${tag} örnek çözüm ${r.stars} yıldız (elmas ${r.sim.gems.length}/${(L.gems || []).length})`);
   if (L.world > 1 && L.target) {
     const a = L.target.y / L.target.x;
     const s = E.play(L, `${a.toFixed(6)}x`);
-    if (s.stars >= 2) bad(`${tag} orijinden hedefe düz çizgiyle ${s.stars} yıldız alınıyor`);
+    if (s.stars >= 3) bad(`${tag} orijinden hedefe düz çizgiyle ${s.stars} yıldız alınıyor`);
   }
-  if (L.solution !== '0' && E.play(L, '0').stars >= 2) bad(`${tag} yatay çizgi yetiyor`);
+  if (L.solution !== '0' && E.play(L, '0').stars >= 3) bad(`${tag} yatay çizgi yetiyor`);
   for (const w of L.wrong || []) {
     const s = E.play(L, w);
     if (!s.parse.ok) bad(`${tag} yanlış çözüm "${w}" ayrıştırılamadı`);
-    else if (s.stars >= 2) bad(`${tag} yanlış çözüm "${w}" ${s.stars} yıldız alıyor`);
+    else if (s.stars >= 3) bad(`${tag} yanlış çözüm "${w}" ${s.stars} yıldız alıyor`);
   }
   if (fails === before) console.log(`  ✓ ${tag} ${L.topic.padEnd(12)} ${r.parse.text}  · ${r.parse.cost} parça`);
 }

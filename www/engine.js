@@ -323,22 +323,46 @@
     return p.ok ? p.cost : Infinity;
   }
 
-  // ★1 hedefe ulaştın · ★2 bütün elmaslar (elmas yoksa kendiliğinden) · ★3 elmaslar + en fazla N parça
-  function stars(level, sim, cost) {
+  // Yıldızlar (sahip, 2026-11-16; "en kısa yazma" sınırı kaldırıldı):
+  // ★ hedefe ulaştın · ★★ elmasların en az yarısı · ★★★ bütün elmaslar. Elmas yoksa (ters bulmaca) kazanmak ★★★.
+  function stars(level, sim) {
     if (sim.result !== 'win') return 0;
-    if (!sim.allGems) return 1;
-    return cost <= limitOf(level) ? 3 : 2;
+    const n = (level.gems || []).length, g = sim.gems.length;
+    if (g >= n) return 3;
+    return 2 * g >= n ? 2 : 1;
+  }
+
+  // Yasak ve zorunlu tuşlar: level.ban / level.need tuş adları (sq, pow, abs, sin, cos, sqrt, pi).
+  // Formülde hangi "özellikler" var: ^ (üs), fonksiyon adları, π.
+  const KEY_FEATURE = { sq: '^', pow: '^', abs: 'abs', sin: 'sin', cos: 'cos', sqrt: 'sqrt', pi: 'pi' };
+  function features(n, out = new Set()) {
+    if (!n) return out;
+    if (n.k === 'bin') { if (n.op === '^') out.add('^'); features(n.a, out); features(n.b, out); }
+    else if (n.k === 'fn') { out.add(n.f); features(n.a, out); }
+    else if (n.k === 'neg') features(n.a, out);
+    else if (n.k === 'const') out.add(n.v);
+    return out;
+  }
+  // Kural bozuluyorsa { code: 'ban' | 'need', key }, yoksa null.
+  function checkRules(level, parsed) {
+    if (!parsed || !parsed.ok) return null;
+    const f = features(parsed.ast);
+    for (const key of level.ban || []) if (f.has(KEY_FEATURE[key])) return { code: 'ban', key };
+    for (const key of level.need || []) if (!f.has(KEY_FEATURE[key])) return { code: 'need', key };
+    return null;
   }
 
   function play(level, src) {
     const p = parse(src);
     if (!p.ok) return { parse: p };
+    const rule = checkRules(level, p);
+    if (rule) return { parse: p, rule, stars: 0, sim: { result: 'rule', path: [], gems: [], allGems: false } };
     const sim = simulate(level, p.fn);
-    return { parse: p, sim, stars: stars(level, sim, p.cost) };
+    return { parse: p, sim, stars: stars(level, sim) };
   }
 
   const Engine = {
-    parse, tokenize, simulate, stars, limitOf, play, boardOf, show,
+    parse, tokenize, simulate, stars, limitOf, play, boardOf, show, checkRules, features,
     R, GEM_R, TARGET_R, TOL, SHAPE_BAND, DEFAULT_BOARD,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = Engine;
