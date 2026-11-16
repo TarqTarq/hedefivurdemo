@@ -102,6 +102,13 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
   4 Dalgalar (13, sin(x) → sin(πx) → dönüşümler → periyot → ilişkiler) · 5 Ters bulmaca (10). Her bölümün `lesson` ve `topic`'i SPEC'te.
 - `npm run place -- "<çözüm>" 0 0 x1 x2 …` eğrinin noktalarını yazar.
 
+## Yayın ve deneme sürümleri
+- **iOS / TestFlight:** App Store Connect uygulama kimliği 6835140210 ("Hedefi Vur", ana dil İngilizce), iç grup "Arkadaşlarım".
+  Her yüklemede `CURRENT_PROJECT_VERSION` artar (şu an 2). Arşiv + yükleme komutları LITTLE_LEMMA §7.
+- **Android:** `android/` (Capacitor). İkon: `node scripts/render-android.js`. Deneme APK'sı:
+  `npx cap sync android && cd android && ./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`;
+  GitHub'da ön sürüm olarak paylaşılır (`gh release create android-<sürüm> … --prerelease`, ilki: android-0.2).
+
 ## Dosyalar
 - `www/index.html` arayüz (DİL / KAYIT / OYUN / ÇİZİM bölümleri), `www/engine.js`, `www/levels.js`, `www/locales/{tr,en}.js`
 - `tools/verify.js`, `tools/place.js`, `scripts/serve.js`, `scripts/check-locales.js`
