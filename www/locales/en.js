@@ -248,5 +248,8 @@ window.LOCALES.en = {
     'lv.5-8': 'A flipped, steep corner.',
     'lv.5-9': 'Read the wave height and how many steps one cycle takes.',
     'lv.5-10': 'A wave added on top of a slope.',
+    'tab.worlds': 'Levels',
+    'tab.reverse': 'Reverse',
+    'tab.endless': 'Endless',
   },
 };

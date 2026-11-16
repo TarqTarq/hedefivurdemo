@@ -248,5 +248,8 @@ window.LOCALES.tr = {
     'lv.5-8': 'Ters ve dik bir köşe.',
     'lv.5-9': 'Dalganın boyunu ve kaç adımda bir döndüğünü oku.',
     'lv.5-10': 'Bir yokuşun üstüne dalga eklenmiş.',
+    'tab.worlds': 'Bölümler',
+    'tab.reverse': 'Ters bulmaca',
+    'tab.endless': 'Sonsuz',
   },
 };

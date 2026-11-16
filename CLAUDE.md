@@ -76,6 +76,9 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
   `HINT_RULES.needAd` ile ileride ödüllü reklama bağlanacak (`requestHint`); açılan ipuçları `progress.hints`'te.
 - Oyun hissi: WebAudio sesleri (`Fx`), Capacitor Haptics (`Hap`), parçacıklar, karakter eğime döner; ana ekranda ses aç/kapa.
 - Çipler o anki denemeyi gösterir; en iyi rekor başlıktaki yıldızlarda. İpucu: `<konu>. <metin>`.
+- **Ana ekran alt menüsü** (2026-11-16): Bölümler (1–4. dünyalar) · Ters bulmaca (5. dünya) · Sonsuz. Seçili sekme `hv-tab`.
+- **Mutlak değer `|…|` olarak yazılır ve görünür:** `| |` tuşu açık mutlak değer yoksa açar (`abs(`), varsa kapatır (`)`);
+  klavyede `|` aynı. Ekranda `abs(` ve onu kapatan `)` "|" olarak gösterilir.
 - **Dil düğmesi** (ana ekran sağ üst, TR/EN): seçim `hv-lang`'da saklanır ve tarayıcı dilinden önce gelir. Arkadaşın tarayıcısı İngilizce olduğu için oyun İngilizce açılıyordu (2026-11-16).
 - Betikler `?v=<zaman>` ile yüklenir (tarayıcı eski dil dosyasını tutup ham anahtar gösteriyordu).
 
