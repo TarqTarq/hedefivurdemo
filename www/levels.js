@@ -8,7 +8,11 @@
 //           (bölüm öğrettiği şeyi atlatmasın diye)
 //   topic:  bölümün konusu (locales: 'topic.<topic>'), ipucu: 'lv.<id>'
 //   limit:  3. yıldız için en fazla parça (verilmezse örnek çözümün parça sayısı)
-// Hedef ve elmasların koordinatları tam sayı olmalı (verify denetler). Yol x = 0'da f(0)'dan başlar.
+// Hedef ve elmasların koordinatları tam sayı olmalı (verify denetler).
+// Zorluk hesaptan değil AKIL YÜRÜTMEDEN gelir (sahip, 2026-11-16; otobüste kâğıt kalemsiz oynanacak):
+// her dünyanın son bölümlerinde kilit nokta (tepe, köşe, x = 0'daki başlangıç) elmasla VERİLMEZ;
+// simetri (aynı yükseklikte iki elmas → tepe ortada), kökler (eksene değdiği iki yer) ya da
+// geriye uzatma (iki elmastan eğim) ile bulunur. Sayılar küçük kalır. Yol x = 0'da f(0)'dan başlar.
 (function (root) {
   const E = root.Engine || (typeof require !== 'undefined' ? require('./engine.js') : null);
 
@@ -23,8 +27,8 @@
     { w: 1, keys: K1, topic: 'flipLine', sol: '-2x', gems: [2, 4], target: 6, wrong: ['2x', '-x'] },
     { w: 1, keys: K1, topic: 'flipGentle', sol: '-x/3', gems: [6, 12, 18], target: 24, wrong: ['x/3', '-x/2'] },
     { w: 1, keys: K1, topic: 'up', sol: 'x+4', gems: [0, 5], target: 10, wrong: ['x'] },
-    { w: 1, keys: K1, topic: 'down', sol: 'x/2-6', gems: [0, 12], target: 20, wrong: ['x/2', 'x/2+6'] },
-    { w: 1, keys: K1, topic: 'lineBoss', sol: '-2x/3+8', gems: [0, 3, 12], target: 21, wrong: ['-x/2+8', '-2x/3'] },
+    { w: 1, keys: K1, topic: 'down', sol: 'x/2-6', gems: [4, 8], target: 20, wrong: ['x/2', 'x/2+6'] },
+    { w: 1, keys: K1, topic: 'lineBoss', sol: '-2x/3+8', gems: [3, 9], target: 21, wrong: ['-x/2+8', '-2x/3'] },
 
     // ===== Dünya 2: Kavisler (x²) =====
     { w: 2, keys: K2, topic: 'curve', sol: 'x^2', gems: [1, 2], target: 3 },
@@ -35,10 +39,10 @@
     { w: 2, keys: K2, topic: 'down', sol: 'x^2-8', gems: [0, 2], target: 4, wrong: ['x^2', 'x^2+8'] },
     { w: 2, keys: K2, topic: 'flipRight', sol: '-(x-3)^2', gems: [0, 3], target: 6, wrong: ['(x-3)^2', '-(x+3)^2'] },
     { w: 2, keys: K2, topic: 'flipUp', sol: '-x^2+9', gems: [0, 2], target: 4, wrong: ['-x^2', 'x^2+9'] },
-    { w: 2, keys: K2, topic: 'rightDown', sol: '(x-4)^2-6', gems: [0, 4], target: 7, wrong: ['(x-4)^2', 'x^2-6'] },
-    { w: 2, keys: K2, topic: 'all', sol: '-(x-4)^2+12', gems: [0, 2, 4, 6], target: 8,
+    { w: 2, keys: K2, topic: 'rightDown', sol: '(x-4)^2-6', gems: [2, 6], target: 7, wrong: ['(x-4)^2', 'x^2-6'] },
+    { w: 2, keys: K2, topic: 'all', sol: '-(x-4)^2+12', gems: [1, 7], target: 8,
       wrong: ['-(x-4)^2', '(x-4)^2+12', '-x^2+12'] },
-    { w: 2, keys: K2, topic: 'curveBoss', sol: '-(x-4)^2+10', gems: [1, 4, 7], target: 8,
+    { w: 2, keys: K2, topic: 'curveBoss', sol: '-(x-4)^2+10', gems: [2, 6], target: 8,
       walls: [{ x: 3, y: -14, w: 2, h: 16 }, { x: 3, y: 12, w: 2, h: 6 }], wrong: ['-(x-4)^2+12', '-(x-4)^2'] },
 
     // ===== Dünya 3: Germe (dar ve geniş kavisler) =====
@@ -48,16 +52,16 @@
     { w: 3, keys: K2, topic: 'widest', sol: 'x^2/9', gems: [3, 6], target: 9, wrong: ['x^2/4'] },
     { w: 3, keys: K2, topic: 'narrowFlip', sol: '-3x^2', gems: [1], target: 2, wrong: ['-x^2', '3x^2', '-2x^2'] },
     { w: 3, keys: K2, topic: 'wideFlip', sol: '-x^2/4', gems: [2, 4], target: 6, wrong: ['-x^2/2', 'x^2/4'] },
-    { w: 3, keys: K2, topic: 'wideMoved', sol: '(x-6)^2/4-9', gems: [2, 6, 10], target: 12, wrong: ['(x-6)^2-9'] },
-    { w: 3, keys: K2, topic: 'narrowMoved', sol: '2(x-3)^2-8', gems: [1, 3, 5], target: 6, wrong: ['(x-3)^2-8'] },
-    { w: 3, keys: K2, topic: 'stretchBoss', sol: '-(x-8)^2/4+12', gems: [4, 8, 12], target: 16,
+    { w: 3, keys: K2, topic: 'wideMoved', sol: '(x-6)^2/4-9', gems: [2, 4, 8], target: 12, wrong: ['(x-6)^2-9'] },
+    { w: 3, keys: K2, topic: 'narrowMoved', sol: '2(x-3)^2-8', gems: [1, 5], target: 6, wrong: ['(x-3)^2-8'] },
+    { w: 3, keys: K2, topic: 'stretchBoss', sol: '-(x-8)^2/4+12', gems: [4, 12], target: 16,
       wrong: ['-(x-8)^2+12', '-(x-8)^2/2+12'] },
 
     // ===== Dünya 4: Köşeler (|x|, aynı kurallar) =====
     { w: 4, keys: K4, topic: 'corner', sol: 'abs(x-4)', gems: [0, 4], target: 10, wrong: ['abs(x)', '(x-4)^2/4'] },
-    { w: 4, keys: K4, topic: 'cornerFlip', sol: '-abs(x-5)+5', gems: [5], target: 10, wrong: ['abs(x-5)-5'] },
-    { w: 4, keys: K4, topic: 'cornerSteep', sol: '2abs(x-3)-6', gems: [3], target: 8, wrong: ['abs(x-3)-6'] },
-    { w: 4, keys: K4, topic: 'cornerWide', sol: 'abs(x-8)/2+2', gems: [0, 8], target: 16, wrong: ['abs(x-8)+2'] },
+    { w: 4, keys: K4, topic: 'cornerFlip', sol: '-abs(x-5)+5', gems: [3, 7], target: 10, wrong: ['abs(x-5)-5'] },
+    { w: 4, keys: K4, topic: 'cornerSteep', sol: '2abs(x-3)-6', gems: [1, 5], target: 8, wrong: ['abs(x-3)-6'] },
+    { w: 4, keys: K4, topic: 'cornerWide', sol: 'abs(x-8)/2+2', gems: [4, 12], target: 16, wrong: ['abs(x-8)+2'] },
     { w: 4, keys: K4, topic: 'cornerBoss', sol: 'abs(x-4)-abs(x-12)', gems: [2, 8, 14], target: 18, wrong: ['2abs(x-8)-8'] },
 
     // ===== Dünya 5: Dalgalar =====
