@@ -3,3 +3,5 @@ node_modules/
 build/
 ios/App/Pods/
 ios/App/App/public/
+android/local.properties
+android/app/src/main/assets/public/
