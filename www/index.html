@@ -142,6 +142,19 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
 .sheet .row button.main { background: var(--p2); color: #2b2622; }
 .sheet .row button:active { transform: translateY(3px); box-shadow: none; }
 
+/* ---------- Oyun hissi ---------- */
+.boardWrap.shake { animation: shake .38s; }
+@keyframes shake { 20% { transform: translate(-6px, 2px); } 40% { transform: translate(5px, -2px); } 60% { transform: translate(-4px, 1px); } 80% { transform: translate(3px, 0); } }
+.goal.bump { animation: bump .32s; }
+@keyframes bump { 40% { transform: scale(1.14); } }
+.stars span.on { animation: starIn .5s cubic-bezier(.3, 1.7, .5, 1); }
+@keyframes starIn { 0% { transform: translateY(-34px) scale(.3) rotate(-40deg); } 100% { transform: none; } }
+.home-top .right { display: flex; align-items: center; gap: 10px; }
+.iconbtn { width: 34px; height: 34px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: 0 2px 0 var(--line);
+  display: grid; place-items: center; }
+.iconbtn:active { transform: translateY(2px); box-shadow: none; }
+.iconbtn.off { opacity: .45; }
+
 /* ---------- Ders penceresi ---------- */
 .sheet.lesson { text-align: left; max-width: 390px; max-height: 92vh; overflow-y: auto; }
 .lesson .ltag { font-family: var(--mono); font-size: 12px; color: var(--muted); }
@@ -163,7 +176,7 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
 <body>
 <div class="app">
   <section id="levels">
-    <div class="home-top"><div class="brand" data-t="app.name"></div><div class="score"><b>★</b><span id="totalStars"></span></div></div>
+    <div class="home-top"><div class="brand" data-t="app.name"></div><div class="right"><button class="iconbtn" id="soundBtn" aria-label="sound"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button><div class="score"><b>★</b><span id="totalStars"></span></div></div></div>
     <p class="tagline" data-t="app.tagline"></p>
     <div id="worlds"></div>
   </section>
@@ -459,6 +472,7 @@ function press(ins) {
   if (S.anim) return;
   if (!['go', '←', '→', 'home', 'end'].includes(ins)) S.last = null; // yazmaya başlayınca son yol silinir (soluk iz olarak kalır)
   if (ins === 'go') return launch();
+  Fx.key(); Hap.tick();
   if (ins === '←') S.cursor = Math.max(0, S.cursor - 1);
   else if (ins === '→') S.cursor = Math.min(S.pieces.length, S.cursor + 1);
   else if (ins === 'home') S.cursor = 0;
@@ -558,6 +572,73 @@ function toast(msg) {
   toastTimer = setTimeout(() => { el.style.opacity = 0; }, 1800);
 }
 
+/* ===================== SES VE TİTREŞİM =====================
+   Ses dosyası yok: WebAudio ile üretilir (−2048'deki Fx'ten uyarlandı). Ses bağlamı açılışta (askıda) kurulur,
+   ilk dokunuşta yalnız resume() (ilk dokunuşta kurmak takılma yapıyordu, LITTLE_LEMMA §8).
+   Titreşim: Capacitor Haptics (telefonda), tarayıcıda navigator.vibrate varsa o. */
+const Fx = {
+  ctx: null,
+  get on() { return store.get('hv-sound', true); },
+  set on(v) { store.set('hv-sound', v); },
+  create() { if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } },
+  unlock() { this.create(); if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  tone(freq, dur = 0.1, { type = 'sine', vol = 0.06, delay = 0, to = 0 } = {}) {
+    if (!this.on || !this.ctx) return;
+    const t = this.ctx.currentTime + delay;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(this.ctx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  },
+  noise(dur = 0.15, { vol = 0.12, freq = 500, delay = 0 } = {}) {
+    if (!this.on || !this.ctx) return;
+    const n = Math.floor(this.ctx.sampleRate * dur), buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = this.ctx.createBufferSource(), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
+    src.buffer = buf; f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol;
+    src.connect(f).connect(g).connect(this.ctx.destination);
+    src.start(this.ctx.currentTime + delay);
+  },
+  key() { this.tone(620, 0.035, { type: 'triangle', vol: 0.025 }); },
+  launch() { this.tone(260, 0.22, { type: 'triangle', vol: 0.05, to: 620 }); },
+  gem(i) { const f = 784 * Math.pow(2, (i * 2) / 12); this.tone(f, 0.16, { vol: 0.07 }); this.tone(f * 2, 0.1, { type: 'triangle', vol: 0.025, delay: 0.03 }); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.2, { type: 'triangle', vol: 0.07, delay: i * 0.085 })); },
+  star(i) { this.tone(880 * Math.pow(1.26, i), 0.18, { vol: 0.06 }); },
+  crash() { this.noise(0.2, { vol: 0.22, freq: 380 }); this.tone(150, 0.22, { vol: 0.09, to: 60 }); },
+  fail() { this.tone(392, 0.16, { type: 'triangle', vol: 0.05 }); this.tone(294, 0.26, { type: 'triangle', vol: 0.05, delay: 0.12, to: 220 }); },
+};
+Fx.create();
+document.addEventListener('pointerdown', () => Fx.unlock(), { capture: true });
+document.addEventListener('keydown', () => Fx.unlock(), { capture: true });
+
+const Hap = {
+  get on() { return store.get('hv-haptic', true); },
+  get H() { return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics; },
+  impact(style, ms) {
+    if (!this.on) return;
+    if (this.H) this.H.impact({ style }).catch(() => {});
+    else if (navigator.vibrate) navigator.vibrate(ms);
+  },
+  note(type, ms) {
+    if (!this.on) return;
+    if (this.H) this.H.notification({ type }).catch(() => {});
+    else if (navigator.vibrate) navigator.vibrate(ms);
+  },
+  tick() { this.impact('LIGHT', 5); },
+  hit() { this.impact('MEDIUM', 15); },
+  success() { this.note('SUCCESS', [20, 40, 30]); },
+  error() { this.note('ERROR', 60); },
+  warn() { this.note('WARNING', 30); },
+};
+
+const syncSoundBtn = () => $('soundBtn').classList.toggle('off', !Fx.on);
+$('soundBtn').onclick = () => { Fx.on = !Fx.on; syncSoundBtn(); Fx.key(); };
+syncSoundBtn();
+
 /* ===================== FIRLATMA VE ANİMASYON ===================== */
 function launch() {
   if (!S.parsed || !S.parsed.ok || S.anim) return;
@@ -575,21 +656,31 @@ function launch() {
   S.anim = { sim, cum, total, dur, t0: performance.now(), idx: 0, gotNow: 0, cost: S.parsed.cost };
   S.lastCost = S.parsed.cost;
   $('pad').classList.add('busy'); $('fnPad').classList.add('busy');
-  requestAnimationFrame(tick);
+  Fx.launch(); Hap.hit();
+  kick();
 }
 
-function tick() {
-  const now = performance.now();
+// Uçuşun bir karesi (döngü frame() içinden çağrılır). Hafif hızlanarak başlar.
+function stepAnim(now) {
   const A = S.anim;
-  if (!A) return;
   const k = Math.min(1, (now - A.t0) / A.dur);
-  const d = A.total * k;
+  const e = k * k * (3 - 2 * k) * 0.35 + k * 0.65;
+  const d = A.total * e;
   while (A.idx < A.cum.length - 1 && A.cum[A.idx + 1] <= d) A.idx++;
   const gotNow = A.sim.gems.filter(g => g.at <= A.idx).length;
-  if (gotNow !== A.gotNow) { A.gotNow = gotNow; renderGoals(); }
-  draw();
-  if (k < 1) return requestAnimationFrame(tick);
-  finish(A);
+  if (gotNow !== A.gotNow) {
+    for (let i = A.gotNow; i < gotNow; i++) {
+      const [gx, gy] = S.level.gems[A.sim.gems[i].index];
+      burst(gx, gy, [C.gem, C.label, C.star], 12, 5, 4);
+      ring(gx, gy, C.gem, 1.4);
+      Fx.gem(i); Hap.tick();
+    }
+    A.gotNow = gotNow;
+    renderGoals();
+    const chip = $('goals').children[1];
+    if (chip) { chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump'); }
+  }
+  if (k >= 1) finish(A);
 }
 
 function finish(A) {
@@ -602,12 +693,30 @@ function finish(A) {
   const stars = Engine.stars(L, A.sim, A.cost);
   renderGoals();
   draw();
-  if (A.sim.result !== 'win') { toast(t('res.' + A.sim.result)); updateExpr(); return; }
+  const [ex, eyRaw] = A.sim.path[A.sim.path.length - 1];
+  const B = Engine.boardOf(L), ey = Math.max(B.ymin - 0.5, Math.min(B.ymax + 0.5, eyRaw));
+  if (A.sim.result !== 'win') {
+    if (A.sim.result === 'wall') {
+      shakeBoard(); burst(ex, ey, [C.wall, C['wall-ink'], C.char], 14, 6, 4);
+      S.hurtUntil = performance.now() + 450;
+      Fx.crash(); Hap.error();
+    } else {
+      burst(ex, ey, [C.ghost, C.tick], 12, 3, 5);   // "puf"
+      Fx.fail(); Hap.warn();
+    }
+    kick();
+    toast(t('res.' + A.sim.result)); updateExpr(); return;
+  }
+  // Kazanma: hedefte renkli patlama ve halka
+  const tx = L.target ? L.target.x : ex, ty = L.target ? L.target.y : ey;
+  burst(tx, ty, [C.target, C.gem, C.star, C.wall, C.path], 28, 9, 5);
+  ring(tx, ty, C.target, 2.6); ring(tx, ty, C.star, 1.6);
+  Fx.win(); Hap.success(); kick();
   if (stars > (progress.stars[L.id] || 0)) progress.stars[L.id] = stars;
   if (!progress.best[L.id] || A.cost < progress.best[L.id]) progress.best[L.id] = A.cost;
   saveProgress();
   renderGoals();
-  setTimeout(() => showWin(stars, A.cost), 250);
+  setTimeout(() => showWin(stars, A.cost), 520);
 }
 
 function showWin(stars, cost) {
@@ -618,7 +727,7 @@ function showWin(stars, cost) {
   const spans = $('winStars').children;
   [...spans].forEach(s => s.classList.remove('on'));
   $('winModal').classList.remove('hidden');
-  [...spans].forEach((s, i) => { if (i < stars) setTimeout(() => s.classList.add('on'), 200 + i * 220); });
+  [...spans].forEach((s, i) => { if (i < stars) setTimeout(() => { s.classList.add('on'); Fx.star(i); Hap.tick(); }, 220 + i * 260); });
   const idx = LEVELS.indexOf(L);
   $('nextBtn').classList.toggle('hidden', idx === LEVELS.length - 1);
 }
@@ -630,7 +739,7 @@ $('nextBtn').onclick = () => {
   const i = LEVELS.indexOf(S.level);
   if (LEVELS[i + 1]) openLevel(LEVELS[i + 1]); else showScreen('levels');
 };
-$('backBtn').onclick = () => { S.anim = null; $('pad').classList.remove('busy'); $('fnPad').classList.remove('busy'); showScreen('levels'); };
+$('backBtn').onclick = () => { S.anim = null; parts.length = 0; $('pad').classList.remove('busy'); $('fnPad').classList.remove('busy'); showScreen('levels'); };
 
 /* ===================== ÇİZİM VE KAMERA ===================== */
 // Harita matematik koordinatlarında; kamera haritanın bir bölümünü gösterir.
@@ -785,14 +894,60 @@ function drawGrid(B) {
   for (let y = Math.ceil(y0w / step) * step; y <= y1w; y += step) if (y !== 0) ctx.fillText(fmtNum(y), ax, Y(y));
 }
 
-function drawChar(x, y, alpha) {
+// Karakter: yönü (ang, radyan, matematik yönünde) eğimi izler; gözler gittiği yere bakar. Çarpınca kısa süre kızarır.
+function drawChar(x, y, alpha, ang = 0) {
   const r = Math.max(6, Engine.R * cam.ppu * 1.15);
+  const hurt = S.hurtUntil && performance.now() < S.hurtUntil;
   ctx.save(); ctx.globalAlpha = alpha;
-  ctx.beginPath(); ctx.arc(X(x), Y(y), r, 0, Math.PI * 2); ctx.fillStyle = C.char; ctx.fill();
+  ctx.translate(X(x), Y(y)); ctx.rotate(-Math.max(-1.2, Math.min(1.2, ang)));
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = hurt ? C.danger : C.char; ctx.fill();
   ctx.lineWidth = 2; ctx.strokeStyle = C['wall-ink']; ctx.stroke();
   ctx.fillStyle = C.board;
-  ctx.beginPath(); ctx.arc(X(x) + r * 0.25, Y(y) - r * 0.15, r * 0.2, 0, Math.PI * 2); ctx.arc(X(x) + r * 0.62, Y(y) - r * 0.15, r * 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(r * 0.25, -r * 0.15, r * 0.2, 0, Math.PI * 2); ctx.arc(r * 0.62, -r * 0.15, r * 0.2, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
+}
+
+// Parçacıklar (dünya koordinatında; kamera ile birlikte kayar). dot: yerçekimiyle düşen nokta, ring: genişleyen halka.
+const parts = [];
+function burst(x, y, colors, n = 14, speed = 6, size = 4) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = speed * (0.35 + Math.random() * 0.8);
+    parts.push({ kind: 'dot', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v + speed * 0.3, life: 0, max: 0.45 + Math.random() * 0.45,
+      color: colors[i % colors.length], size: size * (0.6 + Math.random() * 0.8) });
+  }
+}
+function ring(x, y, color, r = 1.5) { parts.push({ kind: 'ring', x, y, life: 0, max: 0.45, color, r }); }
+function drawParts() {
+  for (const p of parts) {
+    const k = p.life / p.max;
+    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - k);
+    if (p.kind === 'ring') {
+      ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), Math.max(4, p.r * cam.ppu * (0.3 + k)), 0, Math.PI * 2);
+      ctx.strokeStyle = p.color; ctx.lineWidth = 3 * (1 - k) + 1; ctx.stroke();
+    } else {
+      ctx.translate(X(p.x), Y(p.y)); ctx.rotate(p.life * 6);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      ctx.strokeStyle = C['wall-ink']; ctx.lineWidth = 1; ctx.strokeRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    }
+    ctx.restore();
+  }
+}
+function shakeBoard() { const b = $('boardWrap'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
+
+// Tek çizim döngüsü: uçuş, parçacıklar ve kısa efektler sürerken çalışır, bitince durur (pil dostu).
+let looping = false, lastT = 0;
+function kick() { if (!looping) { looping = true; lastT = performance.now(); requestAnimationFrame(frame); } }
+function frame(now) {
+  const dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000)); lastT = now;
+  if (S.anim) stepAnim(now);
+  for (const p of parts) {
+    p.life += dt;
+    if (p.kind === 'dot') { p.vy -= 14 * dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+  }
+  for (let i = parts.length - 1; i >= 0; i--) if (parts[i].life >= parts[i].max) parts.splice(i, 1);
+  draw();
+  if (S.anim || parts.length || (S.hurtUntil && now < S.hurtUntil)) requestAnimationFrame(frame);
+  else looping = false;
 }
 
 function draw() {
@@ -927,8 +1082,16 @@ function draw() {
   }
 
   // Karakter: yazarken yolun başladığı yerde (x = 0, y = f(0)) bekler
-  if (A) drawChar(cx, Math.max(B.ymin - 0.5, Math.min(B.ymax + 0.5, cy)), 1);
-  else drawChar(start[0], start[1], S.last ? 0.5 : 1);
+  if (A) {
+    const p = A.sim.path, a = p[Math.max(0, A.idx - 2)], b = p[Math.min(p.length - 1, A.idx + 2)];
+    drawChar(cx, Math.max(B.ymin - 0.5, Math.min(B.ymax + 0.5, cy)), 1, Math.atan2(b[1] - a[1], b[0] - a[0]));
+  } else {
+    // Yazarken yolun başlangıç yönüne bakar
+    let ang = 0;
+    if (S.parsed && S.parsed.ok && !S.last) { const d = (S.parsed.fn(0.01) - start[1]) / 0.01; if (Number.isFinite(d)) ang = Math.atan(d); }
+    drawChar(start[0], start[1], S.last ? 0.5 : 1, ang);
+  }
+  drawParts();
 }
 
 /* ===================== AÇILIŞ ===================== */
