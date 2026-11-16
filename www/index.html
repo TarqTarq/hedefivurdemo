@@ -106,6 +106,14 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
 .goal.on { color: #2b2622; background: #fbe3a0; } .goal.on b { color: #e0a400; }
 .hint { font-size: 14px; line-height: 1.4; color: var(--muted); min-height: 19px; padding: 0 2px; }
 .hint b { color: var(--ink); font-family: var(--serif); font-size: 15.5px; font-weight: 700; }
+.hint { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.hintBtn { display: inline-flex; align-items: center; gap: 4px; border: 2px solid var(--line); border-radius: 999px; padding: 2px 10px 2px 6px;
+  background: var(--paper); box-shadow: 0 2px 0 var(--line); font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); }
+.hintBtn svg.ic { width: 15px; height: 15px; }
+.hintBtn:active { transform: translateY(2px); box-shadow: none; }
+.hintBtn.pulse { animation: pulse 1.3s ease-in-out infinite; background: #fbe3a0; color: #2b2622; }
+@keyframes pulse { 50% { transform: scale(1.08); } }
+.hintText { flex-basis: 100%; }
 .expr { min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 10px; }
 .expr .txt { flex: 1; font-size: 26px; font-weight: 700; overflow-x: auto; white-space: nowrap; scrollbar-width: none; cursor: text; }
 .expr .txt::-webkit-scrollbar { display: none; }
@@ -226,7 +234,7 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
 
 <script>
 // Tarayıcı eski dosyaları önbellekten kullanmasın (ham 'lv.2-10' anahtarları görünüyordu): adreslere sürüm ekle.
-{ const v = Date.now(); for (const f of ['locales/tr.js', 'locales/en.js', 'engine.js', 'levels.js']) document.write(`<script src="${f}?v=${v}"><\/script>`); }
+{ const v = Date.now(); for (const f of ['locales/tr.js', 'locales/en.js', 'engine.js', 'levels.js', 'lessons.js']) document.write(`<script src="${f}?v=${v}"><\/script>`); }
 </script>
 <script>
 'use strict';
@@ -296,31 +304,7 @@ const prettyHtml = s => pretty(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').r
    Bölüm başlamadan açılan pencere (bölüm bitmediyse) ve başlıktaki ? düğmesi.
    Her dersin küçük grafiği: ilk eğri kesikli "ana" eğri, sonrakiler renkli dönüşmüş hâlleri.
    Metinler locales 'lesson.<ad>.title/body'; metindeki `formül`ler matematik yazısına çevrilir. */
-const LESSONS = {
-  flat:        { view: [-2, 10, -4, 4],   curves: ['0'] },
-  slope:       { view: [-1, 8, -1, 8],    curves: ['x', '2x', 'x/2'] },
-  flipLine:    { view: [-1, 8, -7, 7],    curves: ['x', '-x'] },
-  shiftLine:   { view: [-1, 12, -7, 9],   curves: ['x/2', 'x/2+4', 'x/2-6'] },
-  lineAll:     { view: [-1, 13, -1, 10],  curves: ['-2x/3+8'], marks: [0, 3, 12] },
-  parabola:    { view: [-4, 4, -1, 10],   curves: ['x^2'], marks: [1, 2, 3] },
-  flipCurve:   { view: [-4, 4, -10, 10],  curves: ['x^2', '-x^2'] },
-  shiftH:      { view: [-6, 7, -1, 10],   curves: ['x^2', '(x-3)^2', '(x+2)^2'] },
-  shiftV:      { view: [-4, 4, -9, 12],   curves: ['x^2', 'x^2+5', 'x^2-8'] },
-  combo:       { view: [-3, 10, -6, 14],  curves: ['x^2', '-(x-4)^2+12'], marks: [4] },
-  narrow:      { view: [-4, 4, -1, 10],   curves: ['x^2', '2x^2', '3x^2'] },
-  wide:        { view: [-7, 7, -1, 10],   curves: ['x^2', 'x^2/2', 'x^2/4'] },
-  stretchFlip: { view: [-6, 6, -9, 9],    curves: ['x^2', '-2x^2', '-x^2/4'] },
-  stretchAll:  { view: [-2, 14, -10, 6],  curves: ['x^2', '(x-6)^2/4-9'], marks: [6] },
-  corner:      { view: [-6, 10, -1, 9],   curves: ['abs(x)', 'abs(x-4)'] },
-  cornerRules: { view: [-6, 6, -6, 9],    curves: ['abs(x)', '2abs(x)', 'abs(x)/2', '-abs(x)'] },
-  cornerSum:   { view: [-1, 17, -10, 10], curves: ['abs(x-4)', '-abs(x-12)', 'abs(x-4)-abs(x-12)'] },
-  wave:        { view: [-1, 13, -3, 3],   curves: ['sin(πx/2)'], marks: [1, 3, 5] },
-  waveHeight:  { view: [-1, 13, -4, 4],   curves: ['sin(πx/2)', '3sin(πx/2)', '-3sin(πx/2)'] },
-  waveSpeed:   { view: [-1, 17, -4, 4],   curves: ['3sin(πx/2)', '3sin(πx/4)'] },
-  waveShift:   { view: [-1, 17, -4, 10],  curves: ['3sin(πx/4)', '3sin(πx/4)+6'] },
-  sum:         { view: [-1, 13, -2, 13],  curves: ['x', 'sin(πx/2)', 'x+sin(πx/2)'] },
-  reverse:     { view: [-1, 8, -6, 10],   curves: ['(x-3)^2-4'], marks: [0, 3, 7] },
-};
+const LESSONS = window.LESSON_DATA.LESSONS;   // www/lessons.js
 const LESSON_COLORS = ['var(--path)', 'var(--p1d)', 'var(--p4d)', 'var(--p5d)'];
 // Formülü ekranda göster: abs(…) → |…|, ^2 → ², eğik x
 const mathHtml = src => prettyHtml(String(src).replace(/abs\(([^()]*)\)/g, '|$1|')).replace(/÷/g, '/');
@@ -378,6 +362,31 @@ const lessonOpen = () => !$('lessonModal').classList.contains('hidden');
 $('lessonBtn').onclick = () => $('lessonModal').classList.add('hidden');
 $('lessonModal').addEventListener('click', e => { if (e.target.id === 'lessonModal') $('lessonModal').classList.add('hidden'); });
 $('helpBtn').onclick = () => S.level && showLesson(S.level, false);
+
+/* ===================== İPUCU =====================
+   Bölümün konusu her zaman görünür ("Ters + yukarı."); ne yapacağını bilmiyorsa oyuncu ? ile dersi açar.
+   İpucu metni varsayılan GİZLİ, oyuncu isterse açılır (sahip, 2026-11-16). İpuçları cevabı değil neye
+   bakılacağını söyler. 3 başarısız denemeden sonra düğme nabız gibi atar (kendiliğinden açılmaz).
+   İleride ödüllü reklama bağlanacak: HINT_RULES.needAd = true ve requestHint içinde reklam. */
+const HINT_RULES = { enabled: true, needAd: false, pulseAfterFails: 3 };
+function requestHint(done) {
+  if (!HINT_RULES.needAd) return done();
+  // TODO(reklam): ödüllü reklam izlenince done() — stüdyo kitindeki NativeAds ile
+  done();
+}
+function renderHint() {
+  const L = S.level;
+  const topic = `<b>${t('topic.' + L.topic)}.</b>`;
+  if (!HINT_RULES.enabled) { $('hint').innerHTML = topic; return; }
+  if (S.hintShown) { $('hint').innerHTML = `${topic}<span class="hintText">${t('lv.' + L.id)}</span>`; return; }
+  const pulse = S.fails >= HINT_RULES.pulseAfterFails ? ' pulse' : '';
+  $('hint').innerHTML = `${topic}<button class="hintBtn${pulse}" id="hintBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>${t('hint.show')}</button>`;
+  $('hintBtn').onclick = () => requestHint(() => {
+    S.hintShown = true;
+    progress.hints = progress.hints || {}; progress.hints[L.id] = true; saveProgress();  // ileride yıldız kuralı için
+    Fx.key(); renderHint();
+  });
+}
 
 /* ===================== BÖLÜM LİSTESİ ===================== */
 // Geliştirme aşamasında bütün bölümler açık. Yayından önce false yap (sıradaki bölüm, öncekinden yıldız alınca açılır).
@@ -437,7 +446,8 @@ function openLevel(L) {
   S.level = L; S.pieces = []; S.cursor = 0; S.ghosts = []; S.anim = null; S.last = null; S.tries = 0; S.camAuto = true;
   $('lvTitle').textContent = t('world.' + L.world);
   readColors();
-  $('hint').innerHTML = `<b>${t('topic.' + L.topic)}.</b> ${t('lv.' + L.id)}`;
+  S.hintShown = false; S.fails = 0;
+  renderHint();
   buildPad();
   updateExpr();
   showScreen('play');
@@ -678,7 +688,7 @@ function stepAnim(now) {
     A.gotNow = gotNow;
     renderGoals();
     const chip = $('goals').children[1];
-    if (chip) { chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump'); }
+    if (chip) { chip.classList.remove('bump'); void chip.offsetWidth; chip.classList.add('bump'); chip.addEventListener('animationend', () => chip.classList.remove('bump'), { once: true }); }
   }
   if (k >= 1) finish(A);
 }
@@ -705,6 +715,8 @@ function finish(A) {
       Fx.fail(); Hap.warn();
     }
     kick();
+    S.fails = (S.fails || 0) + 1;
+    if (S.fails === HINT_RULES.pulseAfterFails && !S.hintShown) renderHint();
     toast(t('res.' + A.sim.result)); updateExpr(); return;
   }
   // Kazanma: hedefte renkli patlama ve halka
@@ -933,6 +945,8 @@ function drawParts() {
   }
 }
 function shakeBoard() { const b = $('boardWrap'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
+// Sarsıntı bitince sınıfı kaldır: kalırsa ekran her yeniden açıldığında animasyon baştan oynuyordu (her bölüm açılışında titreme)
+$('boardWrap').addEventListener('animationend', () => $('boardWrap').classList.remove('shake'));
 
 // Tek çizim döngüsü: uçuş, parçacıklar ve kısa efektler sürerken çalışır, bitince durur (pil dostu).
 let looping = false, lastT = 0;

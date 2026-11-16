@@ -36,6 +36,11 @@ Birlikte "parça parça tanımlı fonksiyon" konusunu öğretirler.
 3. **𝟙 uçları:** kapalı aralık `[a,b]` mı, yarı açık `(a,b]` da yazılabilsin mi? Elmaslar tam sayı noktalarda olduğu için uçtaki değer belli olmalı.
 
 ## Öğretme ve oynanış
+- [x] Dersler basit örneklerle, cevap vermiyor; ipucu isteğe bağlı (2026-11-16)
+- [ ] Elmasların yerleşimi: her dünyanın son bölümleri daha çok düşündürsün (tepe noktasında elmas olmasın, simetrik noktalardan tahmin)
+- [ ] 3. yıldızın anlamı: "en fazla N parça" yerine "ilk denemede" ya da "hayalet grafik kapalıyken"
+- [ ] Küçük eğriler ekranda minicik: bölüm içeriğine göre yakın açılsın
+- [ ] Doğrular dünyası uzun (9 bölüm): 6-7'ye inebilir
 - [ ] **Hayalet grafik kuralları:** şimdilik herkese açık/kapalı düğmesi var. Seçenekler: ilk dünyalarda açık sonra kapalı;
   açıkken 3. yıldız yok; ödüllü ipucu olarak birkaç saniye açılsın.
 - [ ] **"Neredeydin" geri bildirimi:** kaçırılan elmasta "senin yolun burada 9'daydı, elmas 5'te".

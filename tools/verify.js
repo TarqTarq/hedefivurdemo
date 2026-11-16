@@ -101,6 +101,20 @@ global.window = global.window || {};
 for (const f of ['tr', 'en']) eval(require('fs').readFileSync(require('path').join(__dirname, `../www/locales/${f}.js`), 'utf8'));
 const TR = window.LOCALES.tr.strings;
 
+// Dersler cevap vermesin: bir dersin gösterdiği eğri hiçbir bölümün cevabı olmamalı (temel eğriler hariç)
+const { LESSONS, INTRO } = require('../www/lessons.js');
+{
+  const same = (a, b) => { const fa = E.parse(a).fn, fb = E.parse(b).fn;
+    return [-2.5, -1, 0, 0.5, 1, 2, 3.7, 5, 8].every(x => { const u = fa(x), v = fb(x); return (Number.isNaN(u) && Number.isNaN(v)) || Math.abs(u - v) < 1e-9; }); };
+  for (const [key, D] of Object.entries(LESSONS)) for (const c of D.curves) {
+    n++;
+    if (!E.parse(c).ok) { bad(`ders ${key}: "${c}" ayrıştırılamadı`); continue; }
+    if (INTRO.includes(c)) continue;
+    const hit = LEVELS.find(L => same(L.solution, c));
+    if (hit) bad(`ders ${key} bölüm ${hit.id}'in cevabını gösteriyor (${c})`);
+  }
+}
+
 // ---- 2. Bölümler ----
 console.log('Bölümler');
 const ids = new Set();
@@ -110,6 +124,7 @@ for (const L of LEVELS) {
   const tag = `#${L.id}`;
   if (ids.has(L.id)) bad(`${tag} kimlik tekrar ediyor`);
   if (!L.lesson) bad(`${tag} dersi yok (levels.js LESSON_OF)`);
+  else if (!LESSONS[L.lesson]) bad(`${tag} dersi lessons.js içinde yok: ${L.lesson}`);
   else if (!TR[`lesson.${L.lesson}.title`] || !TR[`lesson.${L.lesson}.body`]) bad(`${tag} ders metni yok: lesson.${L.lesson}`);
   for (const k of [`lv.${L.id}`, `topic.${L.topic}`]) if (!TR[k]) bad(`${tag} metin yok: ${k}`);
   ids.add(L.id);
