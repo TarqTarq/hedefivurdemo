@@ -52,10 +52,7 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
   ⟲ = sıfırla (çift dokunuş kaldırıldı, dokunma artık nokta seçiyor).
 - **Haritaya dokunma** (2026-11-16): en yakın elmas/hedef/işaret ya da ızgara noktası seçilir, koordinatı yazılır.
   **Orta nokta düğmesi** (haritanın sağında, en üstte) açıkken iki noktaya dokunulur, ortaları çizilir. Serbest.
-- **Sayı ayarla** (2026-11-16): açınca formüldeki sayıların altı kesikli; bir sayıya dokunulur, altta açılan şeritteki
-  büyük − / + ile değişir, hayalet grafik canlı kayar. (İlk hâli gizli "basılı tut, sürükle"ydi; sahip anlamakta zorlandı.)
-  Güçlü olduğu için hak ile: bölümde açmak 1 hak, o bölümde serbest; 3 hakla başlanır, ilk kez bitirilen bölüm +1 (en çok 9).
-  `TOOL_RULES.needAd` ile ileride ödüllü reklam. Gerçek eksenler ve eksen sayıları çizilir.
+- Sayı ayarla aracı (sayıya dokun, −/+) denendi; sahip beğenmedi, **kaldırıldı** (2026-11-16). Gerçek eksenler ve eksen sayıları çizilir.
 - Karakter yazarken (0, f(0))'da bekler; önizleme x = 0'dan 3 birim.
 - **Hayalet grafik** (2026-11-15): yazılan fonksiyonun görünen aralıktaki tamamı (x < 0 dahil) soluk kesikli çizilir.
   Haritadaki düğmeyle açılıp kapanır (`hv-ghost`, varsayılan açık). Sahip "koşullu açıp kapatacağız, sonra geliştiririz" dedi:
@@ -75,6 +72,14 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
 - Oyun hissi: WebAudio sesleri (`Fx`), Capacitor Haptics (`Hap`), parçacıklar, karakter eğime döner; ana ekranda ses aç/kapa.
 - Çipler o anki denemeyi gösterir; en iyi rekor başlıktaki yıldızlarda. İpucu: `<konu>. <metin>`.
 - Betikler `?v=<zaman>` ile yüklenir (tarayıcı eski dil dosyasını tutup ham anahtar gösteriyordu).
+
+## Sonsuz mod (www/endless.js, 2026-11-16)
+- Rider modeli: her aşamanın elle tasarlanmış **3 çeşidi**, oyunda biri rastgele gelir (8 aşama × 3). Tasarlananlar bitince
+  4. aşamadan sonrakiler karışık sırayla, yarı yarıya **aynalanarak** (y → −y) tekrar gelir (`ENDLESS.pick`).
+- Hedefe varınca orası **yeni orijin**; geçilen yollar haritada soluk kalır. **3 yanlış hakkı**; zaman sınırı ve elmas yok.
+- Sonsuzda yol karakterden başlamalı (f(0) = 0), böylece yollar uç uca eklenir. Bitince (ya da geri dönünce) **Karne**:
+  bütün yol tek çizgi (parça parça renkli), formüller listesi, skor = varılan hedef sayısı, en iyi skor `progress.endlessBest`.
+- Verify her parçayı ve aynasını denetler: örnek çözüm kazanır, yatay yol ve (3. aşamadan itibaren) düz çizgi geçmez.
 
 ## Bölümler (www/levels.js)
 - Matematik koordinatlarında: `sol` (örnek çözüm), `gems`/`target` yalnız x olarak verilir, y çözümden hesaplanır.

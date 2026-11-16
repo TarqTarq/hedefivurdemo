@@ -116,12 +116,6 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
 .hintText { flex-basis: 100%; }
 .hintBtn.on { background: var(--p1); color: #2b2622; }
 .hintBtn[disabled] { opacity: .45; }
-.expr.dragon .txt .num { border-bottom: 2px dashed var(--path); cursor: pointer; }
-.expr.dragon .txt .sel { background: #fbe3a0; color: #2b2622; border-radius: 4px; }
-.adj { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 44px; }
-.adj .k { width: 64px; height: 42px; font-size: 24px; }
-.adjVal { font-family: var(--mono); font-weight: 700; font-size: 22px; min-width: 52px; text-align: center; }
-.adjHelp { font-family: var(--mono); font-size: 13px; color: var(--muted); }
 .expr { min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 10px; }
 .expr .txt { flex: 1; font-size: 26px; font-weight: 700; overflow-x: auto; white-space: nowrap; scrollbar-width: none; cursor: text; }
 .expr .txt::-webkit-scrollbar { display: none; }
@@ -171,6 +165,17 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
 .iconbtn:active { transform: translateY(2px); box-shadow: none; }
 .iconbtn.off { opacity: .45; }
 
+/* ---------- Sonsuz mod ---------- */
+.wfoot .playBtn { border: 2px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: 0 2px 0 var(--line);
+  padding: 2px 14px; font-family: var(--serif); font-style: italic; font-weight: 700; font-size: 15px; color: var(--ink); }
+.wfoot .playBtn:active { transform: translateY(2px); box-shadow: none; }
+.sheet.karne { max-width: 400px; }
+.karne #karneCv { width: 100%; height: auto; border: 2px solid var(--line); border-radius: 12px; background: var(--board); display: block; margin: 6px 0 8px; }
+.karne .kstat { font-family: var(--serif); font-size: 20px; color: var(--ink); font-weight: 700; }
+.karne ol { text-align: left; max-height: 22vh; overflow-y: auto; margin: 4px 0 0; padding-left: 26px; font-size: 16px; }
+.karne ol li { margin: 2px 0; }
+.karne ol li::marker { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
 /* ---------- Ders penceresi ---------- */
 .sheet.lesson { text-align: left; max-width: 390px; max-height: 92vh; overflow-y: auto; }
 .lesson .ltag { font-family: var(--mono); font-size: 12px; color: var(--muted); }
@@ -194,6 +199,7 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
   <section id="levels">
     <div class="home-top"><div class="brand" data-t="app.name"></div><div class="right"><button class="iconbtn" id="soundBtn" aria-label="sound"><svg class="ic" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button><div class="score"><b>★</b><span id="totalStars"></span></div></div></div>
     <p class="tagline" data-t="app.tagline"></p>
+    <div id="endlessCard"></div>
     <div id="worlds"></div>
   </section>
 
@@ -211,7 +217,6 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
     <div class="goals" id="goals"></div>
     <div class="hint" id="hint"></div>
     <div class="expr card"><div class="txt" id="exprTxt"></div><div class="cost" id="exprCost"></div></div>
-    <div class="adj hidden" id="adjBar"></div>
     <div class="pad fns" id="fnPad"></div>
     <div class="pad" id="pad"></div>
   </section>
@@ -225,6 +230,20 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
     <div class="legend" id="lessonLegend"></div>
     <p class="lbody" id="lessonBody"></p>
     <div class="row"><button class="main" id="lessonBtn"></button></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="karneModal">
+  <div class="sheet card karne">
+    <h2 data-t="karne.title"></h2>
+    <p class="kstat" id="karneStat"></p>
+    <p id="karneBest"></p>
+    <canvas id="karneCv" width="720" height="440"></canvas>
+    <ol id="karneList"></ol>
+    <div class="row">
+      <button id="karneHome" data-t="karne.home"></button>
+      <button id="karneAgain" class="main" data-t="karne.again"></button>
+    </div>
   </div>
 </div>
 
@@ -243,7 +262,7 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
 
 <script>
 // Tarayıcı eski dosyaları önbellekten kullanmasın (ham 'lv.2-10' anahtarları görünüyordu): adreslere sürüm ekle.
-{ const v = Date.now(); for (const f of ['locales/tr.js', 'locales/en.js', 'engine.js', 'levels.js', 'lessons.js']) document.write(`<script src="${f}?v=${v}"><\/script>`); }
+{ const v = Date.now(); for (const f of ['locales/tr.js', 'locales/en.js', 'engine.js', 'levels.js', 'lessons.js', 'endless.js']) document.write(`<script src="${f}?v=${v}"><\/script>`); }
 </script>
 <script>
 'use strict';
@@ -385,37 +404,16 @@ function requestHint(done) {
 }
 // Konu adı da ipucunun parçası (sahip, 2026-11-16): ekranda hiçbir şey yazmaz, oyuncu ne yapacağını kendisi anlamalı.
 /* ===================== ARAÇLAR =====================
-   Sayı ayarla: formüldeki bir sayıya dokun, − / + ile değiştir (hayalet grafik canlı kayar). Güçlü olduğu için HAK ile:
-   bir bölümde açmak 1 hak harcar, o bölümde serbest kalır. 3 hakla başlanır, ilk kez bitirilen her bölüm +1 (en çok 9).
-   İleride ödüllü reklama bağlanacak (TOOL_RULES.needAd). Haritaya dokunarak koordinat ve iki noktanın ortası serbest. */
-const TOOL_RULES = { start: 3, perNewLevel: 1, max: 9, needAd: false };
-const Tools = {
-  get charges() { return progress.dragCharges ?? TOOL_RULES.start; },
-  set charges(v) { progress.dragCharges = Math.max(0, Math.min(TOOL_RULES.max, v)); saveProgress(); },
-  earn() { this.charges = this.charges + TOOL_RULES.perNewLevel; },
-  unlockDrag() {
-    if (S.dragOn) return;
-    if (this.charges <= 0) return;
-    this.charges = this.charges - 1;
-    S.dragOn = true;
-    Fx.key(); Hap.tick();
-    toast(t('tool.dragHow'));
-    renderHint(); updateExpr();
-  },
-};
+   Haritaya dokununca koordinat; orta nokta düğmesiyle iki noktanın ortası (serbest).
+   (Sayı ayarla aracı denendi, sahip beğenmedi ve kaldırıldı, 2026-11-16.) */
 
 function renderHint() {
   const L = S.level;
-  const dragBtn = S.dragOn
-    ? `<button class="hintBtn on" disabled>± ${t('tool.dragOn')}</button>`
-    : `<button class="hintBtn" id="dragBtn" ${Tools.charges > 0 ? '' : 'disabled'}>± ${t('tool.drag')} (${Tools.charges})</button>`;
   const topic = `<b>${t('topic.' + L.topic)}.</b>`;
-  const wireDrag = () => { const b = $('dragBtn'); if (b) b.onclick = () => Tools.unlockDrag(); };
-  if (!HINT_RULES.enabled) { $('hint').innerHTML = dragBtn; wireDrag(); return; }
-  if (S.hintShown) { $('hint').innerHTML = `${dragBtn}<span class="hintText">${topic} ${t('lv.' + L.id)}</span>`; wireDrag(); return; }
+  if (!HINT_RULES.enabled) { $('hint').innerHTML = ''; return; }
+  if (S.hintShown) { $('hint').innerHTML = `<span class="hintText">${topic} ${t('lv.' + L.id)}</span>`; return; }
   const pulse = S.fails >= HINT_RULES.pulseAfterFails ? ' pulse' : '';
-  $('hint').innerHTML = dragBtn + `<button class="hintBtn${pulse}" id="hintBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>${t('hint.show')}</button>`;
-  wireDrag();
+  $('hint').innerHTML = `<button class="hintBtn${pulse}" id="hintBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>${t('hint.show')}</button>`;
   $('hintBtn').onclick = () => requestHint(() => {
     S.hintShown = true;
     progress.hints = progress.hints || {}; progress.hints[L.id] = true; saveProgress();  // ileride yıldız kuralı için
@@ -446,7 +444,16 @@ function worldIcon(w) {
   return `<svg viewBox="0 0 54 54"><path d="${grid}" stroke="currentColor" stroke-opacity=".12" stroke-width="1.5" fill="none"/>
     <path d="${WORLD_ICON[w] || ''}" stroke="var(--path)" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
+function renderEndlessCard() {
+  const best = progress.endlessBest || 0;
+  $('endlessCard').innerHTML = `<div class="wcard card" style="--c: var(--p7); --cd: var(--p7d)">
+    <div class="whead"><div><h2>${t('endless.title')}</h2><p>${t('endless.sub')}</p></div><div class="wicon"><svg viewBox="0 0 54 54"><path d="M18 4V50M27 4V50M36 4V50M4 18H50M4 27H50M4 36H50" stroke="currentColor" stroke-opacity=".12" stroke-width="1.5" fill="none"/><path d="M7 40L17 30L24 34L33 20L40 24L47 10" stroke="var(--path)" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="30" r="3" fill="var(--ink)"/><circle cx="33" cy="20" r="3" fill="var(--ink)"/><circle cx="47" cy="10" r="3" fill="var(--ink)"/></svg></div></div>
+    <div class="wfoot"><span>${t('endless.best', { n: best })}</span><button class="playBtn" id="endlessBtn">${t('endless.play')}</button></div>
+  </div>`;
+  $('endlessBtn').onclick = () => startEndless();
+}
 function renderLevels() {
+  renderEndlessCard();
   const total = LEVELS.reduce((s, L) => s + (progress.stars[L.id] || 0), 0);
   $('totalStars').textContent = `${total} / ${LEVELS.length * 3}`;
   const worlds = [...new Set(LEVELS.map(L => L.world))];
@@ -479,10 +486,11 @@ function showScreen(name) {
 /* ===================== OYUN EKRANI ===================== */
 function openLevel(L) {
   S.level = L; S.pieces = []; S.cursor = 0; S.ghosts = []; S.anim = null; S.last = null; S.tries = 0; S.camAuto = true;
-  $('lvTitle').textContent = t('world.' + L.world);
+  $('lvTitle').textContent = L.endless ? t('endless.title') : t('world.' + L.world);
+  $('helpBtn').classList.toggle('hidden', !!L.endless);   // sonsuz modda ders yok
   readColors();
-  S.hintShown = false; S.fails = 0; S.picks = []; S.dragOn = false; S.selNum = null;
-  renderHint();
+  S.hintShown = false; S.fails = 0; S.picks = [];
+  if (L.endless) $('hint').innerHTML = ''; else renderHint();
   buildPad();
   updateExpr();
   showScreen('play');
@@ -519,7 +527,6 @@ function press(ins) {
   if (!['go', '←', '→', 'home', 'end'].includes(ins)) S.last = null; // yazmaya başlayınca son yol silinir (soluk iz olarak kalır)
   if (ins === 'go') return launch();
   Fx.key(); Hap.tick();
-  S.selNum = null;
   if (ins === '←') S.cursor = Math.max(0, S.cursor - 1);
   else if (ins === '→') S.cursor = Math.min(S.pieces.length, S.cursor + 1);
   else if (ins === 'home') S.cursor = 0;
@@ -562,44 +569,28 @@ function updateExpr() {
   const txt = $('exprTxt'), cost = $('exprCost');
   const caret = '<span class="caret"></span>';
   if (!src) txt.innerHTML = caret + `<span class="ph">${t('play.placeholder')}</span>`;
-  const inSel = i => S.selNum && i >= S.selNum.i0 && i < S.selNum.i0 + S.selNum.len;
-  if (src) txt.innerHTML = S.pieces.map((p, i) => (i === S.cursor && !S.dragOn ? caret : '') +
-    `<span class="pc${S.dragOn && isNumPiece(p) ? ' num' : ''}${inSel(i) ? ' sel' : ''}" data-i="${i}">${prettyHtml(p)}</span>`).join('') +
-    (S.cursor === S.pieces.length && !S.dragOn ? caret : '');
+  if (src) txt.innerHTML = S.pieces.map((p, i) => (i === S.cursor ? caret : '') + `<span class="pc" data-i="${i}">${prettyHtml(p)}</span>`).join('') +
+    (S.cursor === S.pieces.length ? caret : '');
   // İmleç görünür kalsın
-  const c = txt.querySelector('.caret') || txt.querySelector('.sel') || txt.lastElementChild;
+  const c = txt.querySelector('.caret');
   if (c && c.offsetLeft < txt.scrollLeft + 10) txt.scrollLeft = c.offsetLeft - 30;
   else if (c && c.offsetLeft > txt.scrollLeft + txt.clientWidth - 10) txt.scrollLeft = c.offsetLeft - txt.clientWidth + 30;
   if (!src) { cost.textContent = ''; cost.className = 'cost'; }
   else if (S.parsed.ok) { cost.textContent = ''; cost.className = 'cost'; }
   else { cost.textContent = t('err.' + S.parsed.error); cost.className = 'cost err'; }
   $('pad').querySelector('.go').disabled = !(S.parsed && S.parsed.ok);
-  $('exprTxt').parentNode.classList.toggle('dragon', !!S.dragOn);
-  renderAdj();
-  $('tries').textContent = t('play.level', { n: S.level.id }) + (S.tries ? ' · ' + t('play.tries', { n: S.tries }) : '');
+  $('tries').textContent = S.level.endless
+    ? `${t('endless.status', { n: EN.stage + 1 })} · ${'♥'.repeat(EN.lives)}${'♡'.repeat(3 - EN.lives)}`
+    : t('play.level', { n: S.level.id }) + (S.tries ? ' · ' + t('play.tries', { n: S.tries }) : '');
   renderGoals();
   draw();
 }
 
 // İfadeye dokununca imleç oraya gider (parçanın sağ yarısına dokunursan arkasına)
-const isNumPiece = p => /^[0-9.]$/.test(p);
-// Sayı ayarla açıksa: formüldeki bir sayıya dokun → seçilir; şeritteki − / + ile değişir (hayalet grafik kayar).
-// (Eskiden gizli "basılı tut, sürükle" hareketiydi; sahip anlamakta zorlandı, 2026-11-16.)
-function numRunAt(i) {
-  let i0 = i, i1 = i;
-  while (i0 > 0 && isNumPiece(S.pieces[i0 - 1])) i0--;
-  while (i1 < S.pieces.length - 1 && isNumPiece(S.pieces[i1 + 1])) i1++;
-  return { i0, len: i1 - i0 + 1 };
-}
+// İfadeye dokununca imleç oraya gider (parçanın sağ yarısına dokunursan arkasına)
 $('exprTxt').addEventListener('pointerdown', e => {
   if (S.anim) return;
   const pc = e.target.closest('.pc');
-  if (S.dragOn && pc && isNumPiece(S.pieces[+pc.dataset.i])) {
-    S.selNum = numRunAt(+pc.dataset.i);
-    Fx.key(); Hap.tick();
-    updateExpr();
-    return;
-  }
   if (pc) {
     const r = pc.getBoundingClientRect();
     S.cursor = +pc.dataset.i + (e.clientX > r.left + r.width / 2 ? 1 : 0);
@@ -609,31 +600,7 @@ $('exprTxt').addEventListener('pointerdown', e => {
   }
   updateExpr();
 });
-function stepNum(dir) {
-  const sel = S.selNum;
-  if (!sel || S.anim) return;
-  const txt0 = S.pieces.slice(sel.i0, sel.i0 + sel.len).join(''), v0 = parseFloat(txt0);
-  if (!Number.isFinite(v0)) return;
-  const v = Math.max(0, v0 + dir * (txt0.includes('.') ? 0.5 : 1));
-  const str = Number.isInteger(v) ? String(v) : String(+v.toFixed(2));
-  S.pieces.splice(sel.i0, sel.len, ...str.split(''));
-  sel.len = str.length;
-  S.cursor = sel.i0 + sel.len;
-  S.last = null;
-  Fx.key(); Hap.tick();
-  updateExpr();
-}
-function renderAdj() {
-  const bar = $('adjBar');
-  bar.classList.toggle('hidden', !S.dragOn);
-  if (!S.dragOn) return;
-  const sel = S.selNum && S.pieces.slice(S.selNum.i0, S.selNum.i0 + S.selNum.len).every(isNumPiece) ? S.selNum : null;
-  if (!sel) { S.selNum = null; bar.innerHTML = `<span class="adjHelp">${t('tool.adjPick')}</span>`; return; }
-  const val = S.pieces.slice(sel.i0, sel.i0 + sel.len).join('');
-  bar.innerHTML = `<button class="k op" id="adjMinus">−</button><span class="adjVal">${val}</span><button class="k op" id="adjPlus">+</button>`;
-  $('adjMinus').onclick = () => stepNum(-1);
-  $('adjPlus').onclick = () => stepNum(1);
-}
+
 
 // Çipler o anki (ya da son) denemeyi gösterir; en iyi rekor başlıktaki yıldızlarda.
 function renderGoals() {
@@ -643,7 +610,7 @@ function renderGoals() {
   const won = !A && sim && sim.result === 'win';
   const allGems = got === nGems;
   // ★ hedef · ★★ elmasların yarısı · ★★★ hepsi (sahip, 2026-11-16)
-  const goals = L.shape ? [[t('goal.shape'), won]] : [
+  const goals = L.shape ? [[t('goal.shape'), won]] : L.endless ? [[t('goal.target'), won]] : [
     [t('goal.target'), won],
     [nGems ? t('goal.gems', { a: got, b: nGems }) : t('goal.nogems'), nGems ? allGems && (won || !!A) : won],
   ];
@@ -733,6 +700,7 @@ function launch() {
   if (!S.parsed || !S.parsed.ok || S.anim) return;
   const rule = Engine.checkRules(S.level, S.parsed);
   if (rule) { toast(t('rule.' + rule.code, { k: KEY_NAME[rule.key] || rule.key })); Fx.fail(); Hap.warn(); return; }
+  if (S.level.endless && !(Math.abs(S.parsed.fn(0)) < 1e-6)) { toast(t('endless.start')); Fx.fail(); Hap.warn(); return; }
   const sim = Engine.simulate(S.level, S.parsed.fn);
   // Yol boyunca birikimli uzunluk: karakter sabit hızla ilerlesin
   const cum = [0];
@@ -798,14 +766,22 @@ function finish(A) {
     kick();
     S.fails = (S.fails || 0) + 1;
     if (S.fails === HINT_RULES.pulseAfterFails && !S.hintShown) renderHint();
-    toast(t('res.' + A.sim.result)); updateExpr(); return;
+    toast(t('res.' + A.sim.result));
+    if (L.endless) { EN.lives--; if (EN.lives <= 0) setTimeout(showKarne, 800); }
+    updateExpr(); return;
   }
   // Kazanma: hedefte renkli patlama ve halka
   const tx = L.target ? L.target.x : ex, ty = L.target ? L.target.y : ey;
   burst(tx, ty, [C.target, C.gem, C.star, C.wall, C.path], 28, 9, 5);
   ring(tx, ty, C.target, 2.6); ring(tx, ty, C.star, 1.6);
   Fx.win(); Hap.success(); kick();
-  if (!progress.stars[L.id]) Tools.earn();   // ilk kez bitirilen bölüm: +1 Ayarla hakkı
+  if (L.endless) {   // sonsuz: yolu karneye ekle, hedef yeni orijin, sıradaki parça
+    EN.segs.push({ src: S.pieces.join(''), path: A.sim.path.map(([x, y]) => [x + EN.origin[0], y + EN.origin[1]]) });
+    EN.origin = [EN.origin[0] + L.target.x, EN.origin[1] + L.target.y];
+    EN.stage++;
+    setTimeout(loadChunk, 750);
+    return;
+  }
   if (stars > (progress.stars[L.id] || 0)) progress.stars[L.id] = stars;
   if (!progress.best[L.id] || A.cost < progress.best[L.id]) progress.best[L.id] = A.cost;
   saveProgress();
@@ -833,7 +809,7 @@ $('nextBtn').onclick = () => {
   const i = LEVELS.indexOf(S.level);
   if (LEVELS[i + 1]) openLevel(LEVELS[i + 1]); else showScreen('levels');
 };
-$('backBtn').onclick = () => { S.anim = null; parts.length = 0; $('pad').classList.remove('busy'); $('fnPad').classList.remove('busy'); showScreen('levels'); };
+$('backBtn').onclick = () => { if (S.level && S.level.endless && EN.on) { S.anim = null; parts.length = 0; $('pad').classList.remove('busy'); $('fnPad').classList.remove('busy'); return showKarne(); } S.anim = null; parts.length = 0; $('pad').classList.remove('busy'); $('fnPad').classList.remove('busy'); showScreen('levels'); };
 
 /* ===================== ÇİZİM VE KAMERA ===================== */
 // Harita matematik koordinatlarında; kamera haritanın bir bölümünü gösterir.
@@ -847,7 +823,7 @@ function readColors() {
   for (const k of ['board', 'grid', 'grid-strong', 'axis', 'tick', 'outside', 'wall', 'wall-ink', 'gem', 'gem-ink', 'target', 'target-ink', 'char', 'path', 'ghost', 'danger', 'bg', 'label', 'label-ink', 'star'])
     C[k] = cs.getPropertyValue('--' + k).trim();
   // Duvarlar dünyanın renginde (gök mavisi elmaslarla karışmasın diye 1. ve 5. dünya lavanta/gök yer değiştirir)
-  if (S.level) { const w = S.level.world; C.wall = cs.getPropertyValue('--p' + (w === 1 ? 5 : w === 5 ? 2 : w)).trim(); }
+  if (S.level) { const w = S.level.endless ? 1 : S.level.world; C.wall = cs.getPropertyValue('--p' + (w === 1 ? 5 : w === 5 ? 2 : w)).trim(); }
   // (7. dünyada şerit limon renginde)
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); draw(); });
@@ -1110,8 +1086,14 @@ function draw() {
     strokePath(part, part.length, C['wall-ink'], 1.5, [3, 5]);
   }
 
+  // Sonsuz: daha önce geçilen yollar (yeni orijine göre kaydırılmış)
+  if (L.endless) for (const g of EN.segs) {
+    const pts = g.path.map(([x, y]) => [x - EN.origin[0], y - EN.origin[1]]);
+    ctx.save(); ctx.globalAlpha = 0.5; strokePath(pts, pts.length, C.path, 3); ctx.restore();
+  }
+
   // Hayalet grafik: fonksiyonun görünen aralıktaki tamamı (kopuk yerlerde parça parça)
-  if ((S.ghostOn || S.dragOn) && S.parsed && S.parsed.ok && !S.anim) {
+  if (S.ghostOn && S.parsed && S.parsed.ok && !S.anim) {
     const f = S.parsed.fn, [xa] = toWorld(0, 0), [xb] = toWorld(cam.w, 0), dx = 2 / cam.ppu;
     ctx.save(); ctx.strokeStyle = C.path; ctx.globalAlpha = 0.4; ctx.lineWidth = 2; ctx.setLineDash([6, 5]);
     ctx.beginPath();
@@ -1238,6 +1220,67 @@ function draw() {
   }
   drawParts();
 }
+
+/* ===================== SONSUZ MOD =====================
+   Rider modeli (sahip, 2026-11-16): www/endless.js'deki aşamaların 3 çeşidinden biri gelir. Hedefe varınca orası
+   yeni orijin olur, yeni duvarlar ve yeni hedef gelir. 3 yanlış hakkı; bitince "karne": bütün yol tek çizgi + formüller.
+   Zaman sınırı ve elmas yok (sahip: ilk başta böyle, sonra değişebilir). Yol karakterden başlamalı (f(0) = 0). */
+const EN = { on: false, stage: 0, origin: [0, 0], lives: 3, segs: [] };
+function startEndless() {
+  Object.assign(EN, { on: true, stage: 0, origin: [0, 0], lives: 3, segs: [] });
+  $('karneModal').classList.add('hidden');
+  loadChunk();
+}
+function loadChunk() {
+  const c = window.ENDLESS.pick(EN.stage);
+  S.chunk = c;   // geliştirme/test için
+  openLevel({
+    id: '∞', endless: true, world: 0, n: EN.stage + 1, start: [0, 0],
+    target: { x: c.target[0], y: c.target[1] }, walls: c.walls, rocks: [], gems: [],
+    keys: ['abs', 'sq', 'sin', 'pi'], wrong: [], lesson: null, topic: 'endless',
+  });
+}
+function showKarne() {
+  EN.on = false;
+  const score = EN.segs.length;
+  if (score > (progress.endlessBest || 0)) { progress.endlessBest = score; saveProgress(); }
+  $('karneStat').textContent = t('karne.score', { n: score });
+  $('karneBest').textContent = t('endless.best', { n: progress.endlessBest || 0 });
+  $('karneList').innerHTML = EN.segs.map(g => `<li><span class="f">${mathHtml(g.src)}</span></li>`).join('');
+  drawKarne();
+  $('karneModal').classList.remove('hidden');
+  Fx.win();
+}
+// Bütün yolu tek çizgi olarak çiz: her parça ayrı renkte, hedefler nokta
+function drawKarne() {
+  const kc = $('karneCv'), k = kc.getContext('2d'), W = kc.width, H = kc.height;
+  const cs = getComputedStyle(document.documentElement), col = n => cs.getPropertyValue(n).trim();
+  k.clearRect(0, 0, W, H);
+  k.fillStyle = col('--board'); k.fillRect(0, 0, W, H);
+  const pts = [[0, 0], ...EN.segs.flatMap(g => g.path)];
+  if (!EN.segs.length) {
+    k.fillStyle = col('--muted'); k.font = '600 26px ui-monospace, Menlo, monospace'; k.textAlign = 'center';
+    k.fillText(t('karne.empty'), W / 2, H / 2); return;
+  }
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs) - 1, x1 = Math.max(...xs) + 1, y0 = Math.min(...ys) - 1, y1 = Math.max(...ys) + 1;
+  const sc = Math.min(W / (x1 - x0), H / (y1 - y0));
+  const ox = (W - (x1 - x0) * sc) / 2, oy = (H - (y1 - y0) * sc) / 2;
+  const KX = x => ox + (x - x0) * sc, KY = y => oy + (y1 - y) * sc;
+  k.strokeStyle = col('--grid-strong'); k.lineWidth = 1; k.beginPath();
+  for (let x = Math.ceil(x0); x <= x1; x += Math.max(1, Math.round(10 / sc))) { k.moveTo(KX(x), 0); k.lineTo(KX(x), H); }
+  for (let y = Math.ceil(y0); y <= y1; y += Math.max(1, Math.round(10 / sc))) { k.moveTo(0, KY(y)); k.lineTo(W, KY(y)); }
+  k.stroke();
+  const colors = ['--path', '--p1d', '--p4d', '--p5d', '--p3d', '--p6d'].map(col);
+  EN.segs.forEach((g, i) => {
+    k.strokeStyle = colors[i % colors.length]; k.lineWidth = 6; k.lineCap = 'round'; k.lineJoin = 'round';
+    k.beginPath(); g.path.forEach(([x, y], j) => (j ? k.lineTo(KX(x), KY(y)) : k.moveTo(KX(x), KY(y)))); k.stroke();
+  });
+  k.fillStyle = col('--ink');
+  [[0, 0], ...EN.segs.map(g => g.path[g.path.length - 1])].forEach(([x, y]) => { k.beginPath(); k.arc(KX(x), KY(y), 7, 0, Math.PI * 2); k.fill(); });
+}
+$('karneAgain').onclick = () => startEndless();
+$('karneHome').onclick = () => { $('karneModal').classList.add('hidden'); showScreen('levels'); };
 
 /* ===================== AÇILIŞ ===================== */
 // Telefonda (Capacitor) durum çubuğu temaya uysun: açık temada koyu yazı, koyu temada açık yazı

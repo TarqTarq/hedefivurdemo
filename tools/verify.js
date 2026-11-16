@@ -177,5 +177,24 @@ for (const L of LEVELS) {
   if (fails === before) console.log(`  ✓ ${tag} ${L.topic.padEnd(12)} ${r.parse.text}  · ${r.parse.cost} parça`);
 }
 
+// ---- 3. Sonsuz mod parçaları ----
+console.log('Sonsuz mod');
+{
+  const { STAGES, mirror } = require('../www/endless.js');
+  const before = fails; let count = 0;
+  STAGES.forEach((st, i) => st.forEach((c, j) => { for (const ch of [c, mirror(c)]) {
+    count++;
+    const tag = `∞${i + 1}${'abc'[j]}${ch === c ? '' : ' (ayna)'}`;
+    const L = { target: { x: ch.target[0], y: ch.target[1] }, walls: ch.walls };
+    const p = E.parse(ch.sol);
+    if (!p.ok || Math.abs(p.fn(0)) > 1e-9) { bad(`${tag} çözüm orijinden başlamıyor`); continue; }
+    if (!Number.isInteger(ch.target[0]) || !Number.isInteger(ch.target[1]) || Math.abs(ch.target[1]) > 14) bad(`${tag} hedef tam sayı / sığmıyor`);
+    if (E.play(L, ch.sol).sim.result !== 'win') bad(`${tag} örnek çözüm kazanmıyor`);
+    if (E.play(L, '0').sim.result === 'win') bad(`${tag} yatay yol yetiyor`);
+    if (i >= 2 && E.play(L, `${(ch.target[1] / ch.target[0]).toFixed(9)}x`).sim.result === 'win') bad(`${tag} düz çizgi yetiyor`);
+  } }));
+  if (fails === before) console.log(`  ✓ ${count} parça (aynalarıyla) çözülebilir, hileler geçmiyor`);
+}
+
 console.log(fails ? `\n${fails} sorun var.` : '\nHepsi tamam.');
 process.exit(fails ? 1 : 0);

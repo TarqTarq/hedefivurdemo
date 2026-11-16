@@ -122,7 +122,9 @@ Bütün tuşlar açık; oyuncu hangi aileyi kullanacağına kendisi karar verir.
 | Zıplayan dalga | `|sin(πx/2)|` | Dalganın alt yarısı katlanır |
 | Büyüyen dalga | `x·sin(πx/2)` | Doğru dalganın boyunu belirler |
 
-## Sonsuz mod (sahibin fikri, ayrı mod)
+## Sonsuz mod (sahibin fikri, ayrı mod) — ilk sürümü yapıldı (www/endless.js)
+
+- Rider modeli: her aşamanın 3 çeşidi, biri rastgele gelir; 8 aşama, sonra karışık tekrar ve aynalama. Zaman sınırı ve elmas yok.
 
 - Haritada duvarlar ve bir hedef. Hedefe çarpmadan varınca karakter oraya kayar, **orası yeni orijin** olur; yeni duvarlar ve yeni hedef gelir.
 - **3 yanlış hakkı.** Haklar bitince oyun biter.
