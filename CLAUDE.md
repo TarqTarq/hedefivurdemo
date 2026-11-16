@@ -19,8 +19,10 @@ Esin kaynağı "fonksiyonla ateş etme" oyunları (ör. Graphwar); **savaş tema
 Ad, tema/karakter ve arkadaşla düello modu **sonraya bırakıldı** (2026-11-15). Şu an yalnız motor.
 
 ## Motor (www/engine.js) — kesin kurallar (2026-11-15)
-- **Matematik koordinatları, karakter orijinde.** Harita sınırları x ∈ [−5, 30], y ∈ [−20, 20]; ekran bunun bir kısmını gösterir.
-- **Yol x = 0'da f(0)'dan başlar** (tırmanma yok; eğri orijinden geçmiyorsa geçtiği yerden). f grafiği aynen çizilir.
+- **Matematik koordinatları.** Harita sınırları x ∈ [−10, 30], y ∈ [−20, 20]; ekran bunun bir kısmını gösterir.
+- **Başlangıç x'i** (`level.startX`, varsayılan 0; 2026-11-16): karakter bazı bölümlerde solda başlar (ör. −6), böylece `|x|`'in
+  köşesi, `x²`'nin tamamı görünür (x ≥ 0'da `|x|` = `x`). Yol y = f(x), x = startX'ten sağa.
+- **Yol x = startX'te f(startX)'ten başlar** (tırmanma yok). f grafiği aynen çizilir.
 - **Elmas ve hedef MATEMATİKSEL ve KESİN denetlenir:** karakter o x'e çarpmadan varırsa ve f(x) = y ise (pay yalnız 1e-6,
   yuvarlama hatası için). 0.25 pay vardı; `0.1`, `0.01` 1-1'i geçiyordu (sahip bildirdi). Duvar/kaya geometrik (yarıçap 0.3).
 - Ayrıştırıcı eval kullanmaz. `+ − × ÷ ^`, parantez, örtük çarpma (`2x`, `3sin(x)`, `(x+1)(x−1)`), tekli eksi (`−x^2 = −(x^2)`),
@@ -53,7 +55,10 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
 - **Haritaya dokunma** (2026-11-16): en yakın elmas/hedef/işaret ya da ızgara noktası seçilir, koordinatı yazılır.
   **Orta nokta düğmesi** (haritanın sağında, en üstte) açıkken iki noktaya dokunulur, ortaları çizilir. Serbest.
 - Sayı ayarla aracı (sayıya dokun, −/+) denendi; sahip beğenmedi, **kaldırıldı** (2026-11-16). Gerçek eksenler ve eksen sayıları çizilir.
-- Karakter yazarken (0, f(0))'da bekler; önizleme x = 0'dan 3 birim.
+- Karakter yazarken (startX, f(startX))'te bekler; önizleme oradan 3 birim.
+- **π gerçek sayı** (2026-11-16): nokta etiketleri π'nin katlarını "π/2", "3π/2" diye yazar (`fmtCoord`). Verify "güzel"
+  koordinat ister: tam sayı, yarım ya da π'nin katı.
+- **Kamera içeriğe göre:** küçük bölümler yakın açılır (en az 10, en çok 30 birim).
 - **Hayalet grafik** (2026-11-15): yazılan fonksiyonun görünen aralıktaki tamamı (x < 0 dahil) soluk kesikli çizilir.
   Haritadaki düğmeyle açılıp kapanır (`hv-ghost`, varsayılan açık). Sahip "koşullu açıp kapatacağız, sonra geliştiririz" dedi:
   ileride bölüme/dünyaya göre açık-kapalı, ipucu ya da yıldız kuralına bağlanabilir.
@@ -88,8 +93,9 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
   karmaşık problemlere geçildiğinde eklenecek. Ayrımı elmaslar ve `wrong` listesi yapar.
 - `wrong`: öğretilen dönüşümü atlayan yakın çözümler; verify 2 yıldız almadıklarını denetler. Ayrıca: örnek çözüm 3 yıldız,
   tam sayı koordinat, |y| ≤ 14 (ilk görünüme sığsın), engel dışı, orijinden hedefe düz çizgi ve yatay çizgi hilesi.
-- Müfredat (her bölüm tek kavram): 1 Doğrular (eğim, ters, kaydırma) · 2 Kavisler (x², ters, sağa, sola, yukarı, aşağı, ikililer,
-  hepsi, sınav) · 3 Germe (dar, daha dar, geniş, …, ters, kaymış, sınav) · 4 Köşeler (|x|) · 5 Dalgalar (`sin(πx/2)`) · 6 Toplama · 7 Ters bulmaca (10 bölüm, son kısım, her aileden).
+- **Müfredat (2026-11-16, docs/MUFREDAT.md):** ağ şeklinde; düğüm (yeni kavram) → kenar (önceki kavramlarla ilişkisi) → sentez.
+  5 dünya: 1 Doğrular (11) · 2 Kavisler (13, kökler dahil) · 3 Köşeler (12, |x|, dönüşümler, katlama) ·
+  4 Dalgalar (13, sin(x) → sin(πx) → dönüşümler → periyot → ilişkiler) · 5 Ters bulmaca (10). Her bölümün `lesson` ve `topic`'i SPEC'te.
 - `npm run place -- "<çözüm>" 0 0 x1 x2 …` eğrinin noktalarını yazar.
 
 ## Dosyalar

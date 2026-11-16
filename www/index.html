@@ -364,7 +364,7 @@ function lessonSvg(L) {
   for (const mx of L.marks || []) {
     const my = last(mx);
     out += `<circle cx="${px(mx)}" cy="${py(my)}" r="4" fill="var(--ink)"/>
-      <text x="${px(mx)}" y="${+py(my) - 9}" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700" fill="var(--ink)">(${fmtNum(mx)}, ${fmtNum(my)})</text>`;
+      <text x="${px(mx)}" y="${+py(my) - 9}" text-anchor="middle" font-family="ui-monospace, Menlo, monospace" font-size="11" font-weight="700" fill="var(--ink)">(${fmtCoord(mx)}, ${fmtCoord(my)})</text>`;
   }
   return out + '</svg>';
 }
@@ -433,11 +433,9 @@ function unlocked(L) {
 const WORLD_ICON = {
   1: 'M9 45 L45 11',
   2: 'M12 9 Q27 70 42 9',
-  3: 'M7 18 Q27 52 47 18 M17 9 Q27 60 37 9',
-  4: 'M9 12 L27 42 L45 12',
-  5: 'M7 27 C13 7, 20 7, 27 27 S41 47, 47 27',
-  6: 'M7 45 C12 33, 15 39, 20 33 S27 25, 31 23 S39 13, 47 9',
-  7: 'M8 40 Q27 -2 46 40',
+  3: 'M9 12 L27 42 L45 12',
+  4: 'M7 27 C13 7, 20 7, 27 27 S41 47, 47 27',
+  5: 'M8 40 Q27 -2 46 40',
 };
 function worldIcon(w) {
   const grid = [18, 27, 36].map(v => `M${v} 4V50M4 ${v}H50`).join(' ');
@@ -847,15 +845,18 @@ new ResizeObserver(resize).observe($('boardWrap'));
 // İlk görünüm: kısa kenarda 30 birim, sol kenar x = −3; içerik sığmıyorsa uzaklaş.
 function resetCamera() {
   if (!S.level || !cam.w) return;
-  const L = S.level, pts = [[0, 0], ...(L.target ? [[L.target.x, L.target.y]] : []), ...(L.gems || []), ...(L.marks || [])];
+  const L = S.level, sx = L.startX || 0;
+  const pts = [[0, 0], [sx, 0], ...(L.target ? [[L.target.x, L.target.y]] : []), ...(L.gems || []), ...(L.marks || [])];
   if (L.shape) pts.push([L.shape.from, L.shape.fn(L.shape.from)], [L.shape.to, L.shape.fn(L.shape.to)]);
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   const minx = Math.min(...xs), maxx = Math.max(...xs), miny = Math.min(...ys), maxy = Math.max(...ys);
-  let ppu = Math.min(cam.w, cam.h) / VIEW_UNITS;
-  ppu = Math.min(ppu, cam.w / (maxx - Math.min(minx, 0) + 6), cam.h / (maxy - miny + 6));
+  // İçerik küçükse yakın aç (en az 10 birim), büyükse en çok 30 birimlik görünüm; sığmıyorsa uzaklaş
+  const span = Math.max(maxx - minx, maxy - miny) + 6;
+  let ppu = Math.min(cam.w, cam.h) / Math.max(10, Math.min(VIEW_UNITS, span));
+  ppu = Math.min(ppu, cam.w / (maxx - minx + 5), cam.h / (maxy - miny + 5));
   cam.ppu = ppu;
   const halfW = cam.w / 2 / ppu;
-  cam.cx = Math.min(minx, 0) - 3 + halfW;
+  cam.cx = Math.max(minx - 2 + halfW, (minx + maxx) / 2);
   cam.cy = (miny + maxy) / 2;
   S.camAuto = true;
   draw();
@@ -889,7 +890,7 @@ S.midOn = false;
 $('midBtn').onclick = () => { S.midOn = !S.midOn; $('midBtn').classList.toggle('on', S.midOn); if (!S.midOn) S.picks = S.picks.slice(-1); if (S.midOn) toast(t('tool.midHow')); Fx.key(); draw(); };
 function handleTap(px, py) {
   const L = S.level;
-  const cands = [[0, 0], ...(L.target ? [[L.target.x, L.target.y]] : []), ...(L.gems || []), ...(L.marks || [])];
+  const cands = [[0, 0], [L.startX || 0, 0], ...(L.target ? [[L.target.x, L.target.y]] : []), ...(L.gems || []), ...(L.marks || [])];
   let best = null, bd = 16;
   for (const [x, y] of cands) { const d = Math.hypot(X(x) - px, Y(y) - py); if (d < bd) { bd = d; best = [x, y]; } }
   if (!best) { const [wx, wy] = toWorld(px, py); best = [Math.round(wx), Math.round(wy)]; }
@@ -953,6 +954,19 @@ function strokePath(pts, n, color, width, dash) {
   ctx.restore();
 }
 const fmtNum = v => { const r = Math.round(v * 100) / 100; return (Object.is(r, -0) ? 0 : r).toString().replace('-', '−'); };
+// Nokta etiketleri: π'nin katları "π/2", "3π/2" diye yazılır (π gerçek sayı olarak alınır, 2026-11-16)
+function fmtCoord(v) {
+  if (Math.abs(v - Math.round(v)) < 1e-9) return fmtNum(v);
+  const r = v / Math.PI;
+  for (const d of [1, 2, 3, 4, 6]) {
+    const n = Math.round(r * d);
+    if (n !== 0 && Math.abs(r * d - n) < 1e-9) {
+      const sign = n < 0 ? '−' : '', a = Math.abs(n);
+      return sign + (a === 1 ? '' : a) + 'π' + (d === 1 ? '' : '/' + d);
+    }
+  }
+  return fmtNum(v);
+}
 
 function drawGrid(B) {
   const [x0w, y1w] = toWorld(0, 0), [x1w, y0w] = toWorld(cam.w, cam.h);
@@ -1123,10 +1137,11 @@ function draw() {
   });
 
   // Yol: uçuşta çizilen kısım, bitince tamamı, yazarken önizleme (x = 0'dan itibaren 3 birim)
-  let start = [0, 0];
+  const sx = L.startX || 0;
+  let start = [sx, 0];
   if (S.parsed && S.parsed.ok) {
-    const y = S.parsed.fn(0);
-    if (Number.isFinite(y) && y <= B.ymax && y >= B.ymin) start = [0, y];
+    const y = S.parsed.fn(sx);
+    if (Number.isFinite(y) && y <= B.ymax && y >= B.ymin) start = [sx, y];
   }
   let cx = start[0], cy = start[1];
   if (A) {
@@ -1137,7 +1152,7 @@ function draw() {
     strokePath(S.last.path, S.last.path.length, C.path, 4);
   } else if (S.parsed && S.parsed.ok) {
     const f = S.parsed.fn, lim = L.preview ?? 3, pts = [];
-    for (let x = 0; x <= lim + 1e-9; x += 0.05) {
+    for (let x = sx; x <= sx + lim + 1e-9; x += 0.05) {
       const y = f(x);
       if (!Number.isFinite(y) || y > B.ymax + 1 || y < B.ymin - 1) break;
       pts.push([x, y]);
@@ -1145,12 +1160,12 @@ function draw() {
     strokePath(pts, pts.length, C.path, 3, [2, 6]);
   }
 
-  // Orijin işareti
+  // Orijin işareti (karakter solda başlıyorsa da orijin yerinde kalır)
   ctx.beginPath(); ctx.arc(X(0), Y(0), 4, 0, Math.PI * 2); ctx.strokeStyle = C.axis; ctx.lineWidth = 2; ctx.stroke();
 
   // Koordinat etiketleri
   const label = (wx, wy, alpha, dy) => {
-    const txt = `(${fmtNum(wx)}, ${fmtNum(wy)})`;
+    const txt = `(${fmtCoord(wx)}, ${fmtCoord(wy)})`;
     const fs = 11;
     ctx.save(); ctx.globalAlpha = alpha;
     ctx.font = `700 ${fs}px ui-monospace, "SF Mono", Menlo, monospace`;
@@ -1215,7 +1230,7 @@ function draw() {
   } else {
     // Yazarken yolun başlangıç yönüne bakar
     let ang = 0;
-    if (S.parsed && S.parsed.ok && !S.last) { const d = (S.parsed.fn(0.01) - start[1]) / 0.01; if (Number.isFinite(d)) ang = Math.atan(d); }
+    if (S.parsed && S.parsed.ok && !S.last) { const d = (S.parsed.fn(sx + 0.01) - start[1]) / 0.01; if (Number.isFinite(d)) ang = Math.atan(d); }
     drawChar(start[0], start[1], S.last ? 0.5 : 1, ang);
   }
   drawParts();

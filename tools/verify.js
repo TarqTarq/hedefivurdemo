@@ -57,9 +57,9 @@ for (const [src, res] of edge) {
   if (ms > 300) bad(`"${src}" çok yavaş (${ms} ms)`);
 }
 // Örnekleme hilesi: sabit adım aralığına oturan dalgalar ters bulmacayı geçmemeli
-{ const R1 = LEVELS.find(l => l.id === '7-1');
+{ const R1 = LEVELS.find(l => l.id === '5-1');
   for (const w of ['2x-3+sin(50πx)', '2x-3+sin(100πx)', '2x-3+sin(πx/0.02)', '2x-3+sin(πx/0.01)']) {
-    n++; if (E.play(R1, w).sim.result === 'win') bad(`7-1 "${w}" ile kazanılıyor (örnekleme hilesi)`);
+    n++; if (E.play(R1, w).sim.result === 'win') bad(`5-1 "${w}" ile kazanılıyor (örnekleme hilesi)`);
   } }
 // Ayrıştırıcı uçları
 for (const [src, x, want] of [['2 3', 0, 6], ['√x', 4, 2], ['√(x)', 9, 3], ['--x', 2, 2], ['(((x', 3, 3], ['2x²', 2, 8], ['-2^2', 0, -4], ['x−−3', 1, 4]]) {
@@ -130,17 +130,19 @@ const { LESSONS, INTRO } = require('../www/lessons.js');
 console.log('Bölümler');
 const ids = new Set();
 const isInt = v => Math.abs(v - Math.round(v)) < 1e-9;
+// "Güzel" koordinat: tam sayı, yarım ya da π'nin katı (π/2, 3π/2…) — etiketler okunaklı olsun
+const isNice = v => isInt(v) || isInt(v * 2) || [1, 2, 3, 4, 6].some(d => { const n = v / Math.PI * d; return Math.abs(n - Math.round(n)) < 1e-9; });
 for (const L of LEVELS) {
   const before = fails;
   const tag = `#${L.id}`;
   if (ids.has(L.id)) bad(`${tag} kimlik tekrar ediyor`);
-  if (!L.lesson) bad(`${tag} dersi yok (levels.js LESSON_OF)`);
+  if (!L.lesson) bad(`${tag} dersi yok`);
   else if (!LESSONS[L.lesson]) bad(`${tag} dersi lessons.js içinde yok: ${L.lesson}`);
   else if (!TR[`lesson.${L.lesson}.title`] || !TR[`lesson.${L.lesson}.body`]) bad(`${tag} ders metni yok: lesson.${L.lesson}`);
   for (const k of [`lv.${L.id}`, `topic.${L.topic}`]) if (!TR[k]) bad(`${tag} metin yok: ${k}`);
   ids.add(L.id);
   const B = E.boardOf(L);
-  const inBoard = (x, y) => x >= 0 && x <= B.xmax && y >= B.ymin && y <= B.ymax;
+  const inBoard = (x, y) => x >= (L.startX || 0) && x <= B.xmax && y >= B.ymin && y <= B.ymax;
   const blockers = [...(L.walls || []).map(w => (x, y, r) => {
     const dx = Math.max(w.x - x, 0, x - (w.x + w.w)), dy = Math.max(w.y - y, 0, y - (w.y + w.h));
     return Math.hypot(dx, dy) <= r;
@@ -156,14 +158,14 @@ for (const L of LEVELS) {
     if (!inBoard(x, y)) bad(`${tag} ${name} harita dışında (${x}, ${y})`);
     if (Math.abs(y) > 14) bad(`${tag} ${name} çok yüksek/alçak (${y}); ilk görünümde |y| ≤ 14 olsun`);
     if (blocked(x, y, E.R)) bad(`${tag} ${name} bir engele değiyor (${x}, ${y})`);
-    if (!isInt(x) || !isInt(y)) bad(`${tag} ${name} tam sayı değil (${+x.toFixed(3)}, ${+y.toFixed(3)})`);
+    if (!isNice(x) || !isNice(y)) bad(`${tag} ${name} güzel bir sayı değil (${+x.toFixed(3)}, ${+y.toFixed(3)})`);
   }
   const r = E.play(L, L.solution);
   if (!r.parse.ok) { bad(`${tag} örnek çözüm ayrıştırılamadı`); continue; }
   if (r.rule) { bad(`${tag} örnek çözüm bölüm kuralını bozuyor (${r.rule.code} ${r.rule.key})`); continue; }
   if (r.sim.result !== 'win') bad(`${tag} örnek çözüm kazanmıyor: ${r.sim.result}`);
   else if (r.stars !== 3) bad(`${tag} örnek çözüm ${r.stars} yıldız (elmas ${r.sim.gems.length}/${(L.gems || []).length})`);
-  if (L.world > 1 && L.target) {
+  if (L.world > 1 && L.target && L.target.x !== 0) {
     const a = L.target.y / L.target.x;
     const s = E.play(L, `${a.toFixed(6)}x`);
     if (s.stars >= 3) bad(`${tag} orijinden hedefe düz çizgiyle ${s.stars} yıldız alınıyor`);

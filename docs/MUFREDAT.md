@@ -1,6 +1,6 @@
 # Hedefi Vur: müfredat haritası (taslak)
 
-Durum: **taslak, sahip ve arkadaşı bölüm bölüm gözden geçirecek.** Onaylanınca `www/levels.js` buna göre yeniden yazılır.
+Durum: **uygulandı (2026-11-16)**, `www/levels.js` bu haritaya göre. A'daki kesirli eğim ve B'deki iki öneri (B1 solda başlar, aşağı açılan kökler) dahil. E şimdilik yok.
 Bütün noktalar hesaplandı: tam sayı ve ilk görünüme sığıyor (|y| ≤ 14).
 
 ## İlke: bölümler bir ağ

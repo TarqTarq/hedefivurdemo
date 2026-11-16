@@ -3,7 +3,7 @@
 // (tools/verify.js bölümleri bununla doğrular). eval / new Function KULLANILMAZ.
 //
 // Koordinatlar matematik koordinatlarıdır: karakter ORİJİNDE (0, 0), y yukarı. Oyuncunun yazdığı f kaydırılmadan çizilir.
-// Yol x = 0'da f(0)'dan başlar (karar 2026-11-15: tırmanma yok; eğri orijinden geçmiyorsa geçtiği yerden başlar).
+// Yol x = startX'te (varsayılan 0) f(startX)'ten başlar (tırmanma yok; eğri orijinden geçmiyorsa geçtiği yerden başlar).
 // Elmas ve hedef matematiksel denetlenir (|f(x) − y| ≤ TOL), duvarlar geometrik.
 (function (root) {
   'use strict';
@@ -204,7 +204,7 @@
   // ---------- Simülasyon ----------
   // Harita matematik koordinatlarıdır: karakter orijinde (0, 0). Varsayılan sınırlar aşağıda;
   // ekran bunun ancak bir kısmını gösterir (kaydırılabilir, yakınlaştırılabilir).
-  const DEFAULT_BOARD = { xmin: -5, xmax: 30, ymin: -20, ymax: 20 };
+  const DEFAULT_BOARD = { xmin: -10, xmax: 30, ymin: -20, ymax: 20 };
   const R = 0.3;          // karakter yarıçapı (duvar ve kayalar için, geometrik)
   const GEM_R = 0.35;     // yalnız çizim
   const TARGET_R = 0.6;   // yalnız çizim
@@ -239,13 +239,14 @@
   // gems[].at: elmasın toplandığı path indeksi (animasyon bu anda toplar).
   function simulate(level, fn) {
     const B = boardOf(level);
-    const [x0, y0] = level.start || [0, 0];
+    // Başlangıç x'i (2026-11-16): bazı bölümlerde karakter solda başlar (ör. −6), |x|'in köşesi, x²'nin tamamı görünsün.
+    const x0 = level.startX || 0;
     const walls = level.walls || [], rocks = level.rocks || [], gems = level.gems || [];
     const T = level.target;
     const path = [];
     const got = [];
     let done = null, hit = -1;
-    const Y = u => y0 + fn(u);
+    const Y = u => fn(x0 + u);
 
     // Elmas ve hedef olayları x sırasıyla (aynı x'te önce elmaslar)
     const SH = level.shape;
@@ -301,7 +302,7 @@
     }
 
     const ys = Y(0);
-    if (!Number.isFinite(ys)) { path.push([x0, y0]); done = 'broken'; }
+    if (!Number.isFinite(ys)) { path.push([x0, 0]); done = 'broken'; }
     else step(x0, ys);
     const uMax = B.xmax - x0;
     let u = 0, py = ys, k = 0;
