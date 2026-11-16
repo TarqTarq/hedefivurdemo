@@ -54,6 +54,10 @@ Birlikte "parça parça tanımlı fonksiyon" konusunu öğretirler.
 - [ ] Tema ve karakter (gözlü top geçici), elmas görünümü, kalıcı ikon. Seçenek panosu çizilecek.
 - [ ] Yazı tipini uygulamaya gömmek (Android'de de aynı görünsün).
 
+## Sonsuz mod (sahip fikri, 2026-11-16)
+- [ ] Duvarlar ve bir hedef; hedefe varınca karakter oraya kayar, orası yeni orijin olur, yeni duvarlar ve yeni hedef gelir.
+  3 yanlış hakkı. Bitince bütün yol (ör. 20 parça) tek çizgi olarak gösterilir: oyuncunun "karnesi". Ayrıntı: docs/MUFREDAT.md.
+
 ## Arkadaşla düello
 - [ ] Sırayla oynanan düello: biri engel koyar (bütçeli, önce kendi geçmeli), öbürü çözer. Firebase ile, iPhone ve Android arası.
 

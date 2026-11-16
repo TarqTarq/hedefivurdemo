@@ -50,9 +50,10 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
 ## Arayüz
 - Kamera: ilk görünüm kısa kenarda 30 birim, sol kenar x = −3. Sürükle = kaydır, iki parmak/tekerlek = yakınlaştır,
   ⟲ = sıfırla (çift dokunuş kaldırıldı, dokunma artık nokta seçiyor).
-- **Haritaya dokunma** (2026-11-16): en yakın elmas/hedef/işaret ya da ızgara noktası seçilir, koordinatı yazılır;
-  iki nokta seçilince aralarına çizgi ve **orta noktası** çizilir (simetri bulmacaları için, kâğıt kalem yerine). Serbest.
-- **Ayarla** (2026-11-16): formüldeki sayıya basılı tutup sürükleyince sayı değişir, hayalet grafik canlı kayar.
+- **Haritaya dokunma** (2026-11-16): en yakın elmas/hedef/işaret ya da ızgara noktası seçilir, koordinatı yazılır.
+  **Orta nokta düğmesi** (haritanın sağında, en üstte) açıkken iki noktaya dokunulur, ortaları çizilir. Serbest.
+- **Sayı ayarla** (2026-11-16): açınca formüldeki sayıların altı kesikli; bir sayıya dokunulur, altta açılan şeritteki
+  büyük − / + ile değişir, hayalet grafik canlı kayar. (İlk hâli gizli "basılı tut, sürükle"ydi; sahip anlamakta zorlandı.)
   Güçlü olduğu için hak ile: bölümde açmak 1 hak, o bölümde serbest; 3 hakla başlanır, ilk kez bitirilen bölüm +1 (en çok 9).
   `TOOL_RULES.needAd` ile ileride ödüllü reklam. Gerçek eksenler ve eksen sayıları çizilir.
 - Karakter yazarken (0, f(0))'da bekler; önizleme x = 0'dan 3 birim.
