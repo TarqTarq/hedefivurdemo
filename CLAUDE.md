@@ -76,6 +76,7 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
   `HINT_RULES.needAd` ile ileride ödüllü reklama bağlanacak (`requestHint`); açılan ipuçları `progress.hints`'te.
 - Oyun hissi: WebAudio sesleri (`Fx`), Capacitor Haptics (`Hap`), parçacıklar, karakter eğime döner; ana ekranda ses aç/kapa.
 - Çipler o anki denemeyi gösterir; en iyi rekor başlıktaki yıldızlarda. İpucu: `<konu>. <metin>`.
+- **Dil düğmesi** (ana ekran sağ üst, TR/EN): seçim `hv-lang`'da saklanır ve tarayıcı dilinden önce gelir. Arkadaşın tarayıcısı İngilizce olduğu için oyun İngilizce açılıyordu (2026-11-16).
 - Betikler `?v=<zaman>` ile yüklenir (tarayıcı eski dil dosyasını tutup ham anahtar gösteriyordu).
 
 ## Sonsuz mod (www/endless.js, 2026-11-16)
