@@ -30,7 +30,13 @@ Fikirler ve bekleyen kararlar. Bir madde başlayınca ayrıntısı `CLAUDE.md`'y
 - [ ] **Arkadaşa meydan okuma (sunucusuz):** bir bölümü kısa bir koda/bağlantıya çevirip paylaşmak; düellonun ilk adımı.
 
 ### 4. Kimlik eksik
-- [ ] Oyunun adı (çalışma adı "Hedefi Vur"; App Store kaydı şimdilik bu adla). TR ve EN için 2-3 yedek ad.
+- [ ] Oyunun adı (çalışma adı "Hedefi Vur"; App Store kaydı şimdilik bu adla). App Store'da aranan adaylar (2026-11-16, ABD + TR;
+  arama ayrılmış adları göstermez, kesin sonuç "New App" formunda):
+  - Boş görünenler: **Fx Trail** (öneri), Curvewise, Graphwise, Curve Path, Function Path; TR: **Formül Yolu**, **Eğri Yol**, Grafik Yolu.
+  - Dolu: Plotwise, Plotline, Plot Twist, Arcwise, Linea, Slopes. "Hedefi Vur" önerilmez (atış/savaş çağrışımı, Graphwar'a yakın).
+  - "-wise" adları rakip Plotwise'a fazla benziyor; "Rider" var olan bir oyunun adı, kullanılmaz (4.3 dersi).
+- [ ] **Rakip: "Plotwise: Math Graph Puzzle"** (tahir genc, Aralık 2025): eğri gösterilir, denklem parçaları kutulara sürüklenir,
+  klavye yok. Bizim Ters bulmaca modumuza çok yakın. Mağaza görsellerinde ve metinlerde yol çizme + sonsuz mod öne çıkarılmalı.
 - [ ] Tema ve karakter (gözlü top geçici), elmas görünümü, kalıcı ikon: 6-8 seçenekli pano çizilecek.
 - [ ] Yazı tipini uygulamaya gömmek (Android'de de aynı görünsün).
 
