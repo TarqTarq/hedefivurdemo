@@ -203,7 +203,7 @@ window.LOCALES.tr = {
     'lv.2-1': 'Elmasların yüksekliklerine bak: −2\'de ve 2\'de aynı. 1, 4, 9 tanıdık geliyor mu?',
     'lv.2-2': 'Kavis yukarı mı açılıyor, aşağı mı?',
     'lv.2-3': 'Dip noktası nerede?',
-    'lv.2-4': 'Dibi orijinin solunda kalıyor. Kavis x = 0\'da kaçtan başlıyor?',
+    'lv.2-4': 'Dip noktası nerede? Orijinin solunda mı sağında mı?',
     'lv.2-5': 'Kavisin şekli aynı; dibi nereye çıktı?',
     'lv.2-6': 'Dip noktası nerede?',
     'lv.2-7': 'x = 1\'de normal kavis 1\'e çıkardı. Bu kaça çıkıyor?',

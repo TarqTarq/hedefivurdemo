@@ -203,7 +203,7 @@ window.LOCALES.en = {
     'lv.2-1': 'Look at the gem heights: the same at −2 and 2. Do 1, 4, 9 sound familiar?',
     'lv.2-2': 'Does the curve open up or down?',
     'lv.2-3': 'Where is the bottom?',
-    'lv.2-4': 'Its bottom is left of the origin. Where does the curve start at x = 0?',
+    'lv.2-4': 'Where is the bottom? Left or right of the origin?',
     'lv.2-5': 'Same shape; where did the bottom move?',
     'lv.2-6': 'Where is the bottom?',
     'lv.2-7': 'At x = 1 the usual curve reaches 1. How high does this one go?',

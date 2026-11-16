@@ -29,12 +29,12 @@
 
     // ===== 2. Kavisler (+ doğruyla ilişkisi) =====
     { w: 2, keys: K2, lesson: 'parabola', topic: 'curve', sol: 'x^2', startX: -3, gems: [-2, 0, 2], target: 3, wrong: ['2x', 'x^2+1'] },
-    { w: 2, keys: K2, lesson: 'flipCurve', topic: 'flip', sol: '-x^2', gems: [1, 2], target: 3, wrong: ['x^2'] },
+    { w: 2, keys: K2, lesson: 'flipCurve', topic: 'flip', sol: '-x^2', startX: -3, gems: [-2, 0, 2], target: 3, wrong: ['x^2', '-2x'] },
     { w: 2, keys: K2, lesson: 'shiftH', topic: 'right', sol: '(x-3)^2', gems: [0, 3], target: 6, wrong: ['x^2', '(x+3)^2'] },
-    { w: 2, keys: K2, lesson: 'shiftH', topic: 'left', sol: '(x+2)^2', gems: [0], target: 1, wrong: ['(x-2)^2', 'x^2+4'] },
+    { w: 2, keys: K2, lesson: 'shiftH', topic: 'left', sol: '(x+2)^2', startX: -5, gems: [-4, -2, 0], target: 1, wrong: ['(x-2)^2', 'x^2+4'] },
     { w: 2, keys: K2, lesson: 'shiftV', topic: 'up', sol: 'x^2+5', gems: [0, 1, 2], target: 3, wrong: ['x^2'] },
     { w: 2, keys: K2, lesson: 'shiftV', topic: 'down', sol: 'x^2-8', gems: [0, 2], target: 4, wrong: ['x^2', 'x^2+8'] },
-    { w: 2, keys: K2, lesson: 'narrow', topic: 'narrow', sol: '3x^2', gems: [1], target: 2, wrong: ['x^2', '2x^2'] },
+    { w: 2, keys: K2, lesson: 'narrow', topic: 'narrow', sol: '3x^2', startX: -2, gems: [-1, 0, 1], target: 2, wrong: ['x^2', '2x^2'] },
     { w: 2, keys: K2, lesson: 'wide', topic: 'wide', sol: 'x^2/4', gems: [2, 4], target: 6, wrong: ['x^2', 'x^2/2'] },
     { w: 2, keys: K2, lesson: 'combo', topic: 'symmetry', sol: '(x-4)^2-6', gems: [2, 6], target: 7, wrong: ['(x-4)^2', 'x^2-6'] },
     { w: 2, keys: K2, lesson: 'roots', topic: 'roots', sol: '(x-2)(x-6)', gems: [2, 6], target: 8, wrong: ['(x-2)(x+6)', 'x(x-6)'] },

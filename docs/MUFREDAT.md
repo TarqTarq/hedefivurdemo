@@ -62,12 +62,12 @@ Sütunlar: **tür** (düğüm / kenar / sentez) · **aha** (oyuncunun fark etmes
 | # | Tür | Aha | Cevap | Baş. | Gördüğü |
 |---|---|---|---|---|---|
 | B1 | düğüm | 1, 4, 9: kareler; iki yan aynı | `x²` | **−3** | (−2,4) (0,0) (2,4) → (3,9) |
-| B2 | düğüm | Eksi ters çevirir | `−x²` | | (1,−1) (2,−4) → (3,−9) |
+| B2 | düğüm | Eksi ters çevirir | `−x²` | **−3** | (−2,−4) (0,0) (2,−4) → (3,−9) |
 | B3 | düğüm | İçeride eksi sağa | `(x−3)²` | | (0,9) (3,0) → (6,9) |
-| B4 | düğüm | İçeride artı sola | `(x+2)²` | | (0,4) → (1,9) |
+| B4 | düğüm | İçeride artı sola; dip görünür | `(x+2)²` | **−5** | (−4,4) (−2,0) (0,4) → (1,9) |
 | B5 | düğüm | Sonda artı yukarı | `x²+5` | | (0,5) (1,6) (2,9) → (3,14) |
 | B6 | düğüm | Sonda eksi aşağı | `x²−8` | | (0,−8) (2,−4) → (4,8) |
-| B7 | düğüm | Çarpan daraltır | `3x²` | | (1,3) → (2,12) |
+| B7 | düğüm | Çarpan daraltır | `3x²` | **−2** | (−1,3) (0,0) (1,3) → (2,12) |
 | B8 | düğüm | Bölmek genişletir | `x²/4` | | (2,1) (4,4) → (6,9) |
 | B9 | düğüm | Simetri: dip ortada | `(x−4)²−6` | | (2,−2) (6,−2) → (7,3) |
 | B10 | **kenar** | **İki doğrunun çarpımı kavis**; köklerde eksene değer | `(x−2)(x−6)` | | (2,0) (6,0) → (8,12) |
