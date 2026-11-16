@@ -32,6 +32,7 @@ Fikirler ve bekleyen kararlar. Bir madde başlayınca ayrıntısı `CLAUDE.md`'y
 ### 4. Kimlik eksik
 - [ ] Oyunun adı (çalışma adı "Hedefi Vur"; App Store kaydı şimdilik bu adla). App Store'da aranan adaylar (2026-11-16, ABD + TR;
   arama ayrılmış adları göstermez, kesin sonuç "New App" formunda):
+  - Sahibin adayları: **f(x) Trail** (mağazada "f(x) Trail: Graph Puzzle", TR "f(x) Trail: Formül Yolu"), Graph Hit.
   - Boş görünenler: **Fx Trail** (öneri), Curvewise, Graphwise, Curve Path, Function Path; TR: **Formül Yolu**, **Eğri Yol**, Grafik Yolu.
   - Dolu: Plotwise, Plotline, Plot Twist, Arcwise, Linea, Slopes. "Hedefi Vur" önerilmez (atış/savaş çağrışımı, Graphwar'a yakın).
   - "-wise" adları rakip Plotwise'a fazla benziyor; "Rider" var olan bir oyunun adı, kullanılmaz (4.3 dersi).
@@ -47,6 +48,10 @@ Fikirler ve bekleyen kararlar. Bir madde başlayınca ayrıntısı `CLAUDE.md`'y
 - [ ] **Google Play kapalı testini erken başlat** (12 testçi × 14 gün, her uygulama için ayrı).
 - [ ] Site sayfaları (tanıtım, gizlilik, destek), mağaza metinleri ve ekran görüntüleri.
 - [ ] iPad / iPhone Duo düzeni (geniş ekranda yan panel).
+- [ ] **Yatay ekran** (sahip isteği, 2026-11-16): telefon yan çevrilince de oynanabilsin. Düzen: harita solda geniş, tuş takımı
+  ve formül sağda bir panelde (iPad yan paneliyle aynı düzen). Şu an iOS'ta ve Android'de dikeye kilitli
+  (Info.plist `UISupportedInterfaceOrientations`, AndroidManifest `screenOrientation="portrait"`); açılınca kısa ekranda
+  tuş boyutları ve harita yüksekliği denenmeli.
 
 ### Diğer zayıf noktalar
 - [ ] **İlk 30 saniye:** açılışta doğrudan 1-1 başlasın (liste değil); ilk bölümde tuş takımını gösteren kısa bir el işareti.
