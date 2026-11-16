@@ -111,7 +111,7 @@ canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: 
   background: var(--paper); box-shadow: 0 2px 0 var(--line); font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); }
 .hintBtn svg.ic { width: 15px; height: 15px; }
 .hintBtn:active { transform: translateY(2px); box-shadow: none; }
-.hintBtn.pulse { animation: pulse 1.3s ease-in-out infinite; background: #fbe3a0; color: #2b2622; }
+.hintBtn.pulse { animation: pulse 1.1s ease-in-out 3; background: #fbe3a0; color: #2b2622; }  /* 3 kez atar, sonra sarı kalır (ısrarcı olmasın) */
 @keyframes pulse { 50% { transform: scale(1.08); } }
 .hintText { flex-basis: 100%; }
 .expr { min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 10px; }
@@ -364,9 +364,9 @@ $('lessonModal').addEventListener('click', e => { if (e.target.id === 'lessonMod
 $('helpBtn').onclick = () => S.level && showLesson(S.level, false);
 
 /* ===================== İPUCU =====================
-   Bölümün konusu her zaman görünür ("Ters + yukarı."); ne yapacağını bilmiyorsa oyuncu ? ile dersi açar.
-   İpucu metni varsayılan GİZLİ, oyuncu isterse açılır (sahip, 2026-11-16). İpuçları cevabı değil neye
-   bakılacağını söyler. 3 başarısız denemeden sonra düğme nabız gibi atar (kendiliğinden açılmaz).
+   Ekranda konu adı bile yazmaz; oyuncu ne yapacağını haritadan anlamalı, bilmiyorsa ? ile dersi açar.
+   İpucu (konu adı + yönlendirme) varsayılan GİZLİ, oyuncu isterse açılır (sahip, 2026-11-16). İpuçları cevabı
+   değil neye bakılacağını söyler. 3 başarısız denemeden sonra düğme 3 kez atar ve sarı kalır.
    İleride ödüllü reklama bağlanacak: HINT_RULES.needAd = true ve requestHint içinde reklam. */
 const HINT_RULES = { enabled: true, needAd: false, pulseAfterFails: 3 };
 function requestHint(done) {
@@ -374,13 +374,14 @@ function requestHint(done) {
   // TODO(reklam): ödüllü reklam izlenince done() — stüdyo kitindeki NativeAds ile
   done();
 }
+// Konu adı da ipucunun parçası (sahip, 2026-11-16): ekranda hiçbir şey yazmaz, oyuncu ne yapacağını kendisi anlamalı.
 function renderHint() {
   const L = S.level;
   const topic = `<b>${t('topic.' + L.topic)}.</b>`;
-  if (!HINT_RULES.enabled) { $('hint').innerHTML = topic; return; }
-  if (S.hintShown) { $('hint').innerHTML = `${topic}<span class="hintText">${t('lv.' + L.id)}</span>`; return; }
+  if (!HINT_RULES.enabled) { $('hint').innerHTML = ''; return; }
+  if (S.hintShown) { $('hint').innerHTML = `<span class="hintText">${topic} ${t('lv.' + L.id)}</span>`; return; }
   const pulse = S.fails >= HINT_RULES.pulseAfterFails ? ' pulse' : '';
-  $('hint').innerHTML = `${topic}<button class="hintBtn${pulse}" id="hintBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>${t('hint.show')}</button>`;
+  $('hint').innerHTML = `<button class="hintBtn${pulse}" id="hintBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>${t('hint.show')}</button>`;
   $('hintBtn').onclick = () => requestHint(() => {
     S.hintShown = true;
     progress.hints = progress.hints || {}; progress.hints[L.id] = true; saveProgress();  // ileride yıldız kuralı için

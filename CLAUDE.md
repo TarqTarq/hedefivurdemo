@@ -60,8 +60,8 @@ Açık ve koyu tema CSS değişkenleriyle; kanvas renkleri `readColors()` ile de
 - Ters bulmacada eğrinin görünen kısmının tamamı soluk, izlenecek aralık koyu şerit.
 - **Dersler en basit örneklerle** (2026-11-16): 1 birim sağa `(x−1)²`, 1 yukarı `x²+1`…; büyük sayılar bölümlerde.
   Ders verisi `www/lessons.js`; **hiçbir ders bir bölümün cevabını göstermez** (verify denetler; yalnız temel eğriler `INTRO`).
-- **İpucu isteğe bağlı** (2026-11-16): konu adı hep görünür, ipucu metni gizli; "İpucu" düğmesiyle açılır, 3 başarısız
-  denemeden sonra düğme nabız gibi atar. İpuçları cevabı değil neye bakılacağını söyler ("x = 3'te normal kavis 9'a çıkardı…").
+- **İpucu isteğe bağlı** (2026-11-16): ekranda konu adı bile yazmaz; konu + yönlendirme "İpucu" düğmesiyle açılır.
+  3 başarısız denemeden sonra düğme 3 kez atar ve sarı kalır (sürekli yanıp sönmesi ısrarcı bulunur). İpuçları cevabı değil neye bakılacağını söyler ("x = 3'te normal kavis 9'a çıkardı…").
   `HINT_RULES.needAd` ile ileride ödüllü reklama bağlanacak (`requestHint`); açılan ipuçları `progress.hints`'te.
 - Oyun hissi: WebAudio sesleri (`Fx`), Capacitor Haptics (`Hap`), parçacıklar, karakter eğime döner; ana ekranda ses aç/kapa.
 - Çipler o anki denemeyi gösterir; en iyi rekor başlıktaki yıldızlarda. İpucu: `<konu>. <metin>`.
